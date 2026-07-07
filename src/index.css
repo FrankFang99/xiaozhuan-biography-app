@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', 'PingFang SC', serif;
+  line-height: 1.7;
+  font-weight: 400;
+  font-size: 16px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #050A14;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+input:focus, textarea:focus, button:focus {
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4A853;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C73E3A;
+}
+
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(60px);
+  animation: fade-up 1s ease-out forwards;
+}
+
+.animate-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  animation: reveal 0.8s ease-out forwards;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bg-radial-gradient {
+  background: radial-gradient(ellipse at center, rgba(212, 168, 83, 0.03) 0%, transparent 70%);
+}
+
+.w-25 {
+  width: 100px;
+}
+
+.h-25 {
+  height: 100px;
+}
+
+.w-15 {
+  width: 60px;
+}
+
+.h-15 {
+  height: 60px;
+}
