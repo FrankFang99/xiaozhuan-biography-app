@@ -1,0 +1,47 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/showcase/index",
+    "pages/onboarding/index",
+    "pages/chat/index",
+    "pages/letterbox/index",
+    "pages/my/index",
+    "pages/biography/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#030512",
+    "navigationBarTitleText": "岁月书",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#030512"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#6b7ab5",
+    "selectedColor": "#d4a853",
+    "backgroundColor": "#070b1f",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/chat/index",
+        "text": "对话"
+      },
+      {
+        "pagePath": "pages/letterbox/index",
+        "text": "信夹"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "permission": {
+    "scope.record": {
+      "desc": "用于语音输入，帮助您更方便地与AI对话"
+    }
+  },
+  "sitemapLocation": "sitemap.json",
+  "cloud": true,
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "extractMemory",
+  "version": "1.0.0",
+  "description": "从对话中提取关键信息更新用户记忆",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

@@ -1,0 +1,188 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #0c0c1e, #1a1a3e);
+  padding: 48rpx;
+  padding-bottom: 200rpx;
+}
+
+.stars-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  animation: twinkle infinite ease-in-out;
+}
+
+.star-icon {
+  font-size: 32rpx;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 60rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #ffffff;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.star-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.star-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10rpx);
+  border-radius: 16rpx;
+  padding: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.star-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-emoji {
+  font-size: 48rpx;
+}
+
+.star-info {
+  flex: 1;
+}
+
+.star-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #ffffff;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.star-status {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.star-birthday {
+  text-align: right;
+}
+
+.birthday-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 48rpx;
+  width: 80%;
+  max-width: 600rpx;
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 48rpx;
+}
+
+.modal-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24rpx;
+}
+
+.modal-emoji {
+  font-size: 64rpx;
+}
+
+.modal-name {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.modal-body {
+  margin-bottom: 48rpx;
+}
+
+.modal-status {
+  font-size: 30rpx;
+  color: #e74c3c;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.modal-birthday {
+  font-size: 30rpx;
+  color: #7f8c8d;
+  display: block;
+  margin-bottom: 32rpx;
+}
+
+.modal-message {
+  font-size: 30rpx;
+  color: #5a6c7d;
+  line-height: 1.6;
+}
+
+.modal-close {
+  width: 100%;
+  background: #e74c3c;
+  color: #ffffff;
+  border-radius: 12rpx;
+  padding: 28rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  border: none;
+}

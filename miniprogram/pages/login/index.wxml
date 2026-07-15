@@ -1,0 +1,63 @@
+<view class="page-container">
+  <image class="bg-image" src="https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" mode="aspectFill"></image>
+  <view class="bg-overlay"></view>
+  
+  <view class="content">
+    <view class="brand-area">
+      <view class="logo-container">
+        <image class="logo-image" src="/images/biographer_avatar.jpg" mode="aspectFill" />
+      </view>
+      <text class="brand-name">岁月书</text>
+      <text class="brand-slogan">您的专属传记作者</text>
+    </view>
+    
+    <view class="decoration-line"></view>
+    
+    <text class="welcome-text">把人生故事讲给孩子听</text>
+  </view>
+
+  <view class="footer-area">
+    <view class="login-form">
+      <button 
+        class="avatar-btn" 
+        open-type="chooseAvatar" 
+        bindchooseavatar="onChooseAvatar"
+      >
+        <image wx:if="{{avatarUrl}}" class="avatar-preview" src="{{avatarUrl}}" mode="aspectFill" />
+        <view wx:else class="avatar-placeholder">
+          <text class="avatar-icon">👤</text>
+        </view>
+      </button>
+      
+      <input 
+        class="nickname-input" 
+        type="nickname" 
+        placeholder="请输入昵称" 
+        value="{{nickName}}"
+        bindinput="onNicknameInput"
+      />
+    </view>
+    
+    <button 
+      class="login-btn" 
+      open-type="getPhoneNumber" 
+      bindgetphonenumber="onGetPhoneNumber"
+    >
+      <view class="wechat-icon">
+        <view class="circle">
+          <view class="dot dot-1"></view>
+          <view class="dot dot-2"></view>
+          <view class="dot dot-3"></view>
+        </view>
+      </view>
+      <text class="login-text">微信授权登录</text>
+    </button>
+    
+    <text class="agreement">
+      登录即表示同意
+      <text class="link">《用户协议》</text>
+      和
+      <text class="link">《隐私政策》</text>
+    </text>
+  </view>
+</view>

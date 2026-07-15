@@ -1,0 +1,161 @@
+<view class="page-container">
+  <view class="stars-bg">
+    <view 
+      wx:for="{{bgStars}}" 
+      wx:key="id" 
+      class="bg-star"
+      style="left: {{item.x}}%; top: {{item.y}}%; opacity: {{item.opacity}}; width: {{item.size}}rpx; height: {{item.size}}rpx; animation-duration: {{item.duration}}s; animation-delay: {{item.delay}}s;"
+    >
+      <view class="star-dot"></view>
+    </view>
+  </view>
+
+  <view class="header animate-fade-up">
+    <text class="title font-serif text-shadow-glow">我的</text>
+    <text class="subtitle text-ghost-muted">记录时光，珍藏回忆</text>
+  </view>
+
+  <view class="user-card glass-card-strong animate-fade-up" style="animation-delay: 0.1s;">
+    <view class="user-avatar">
+      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="avatar-image" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
+      <view wx:else class="avatar-default"></view>
+    </view>
+    <view class="user-info">
+      <text class="user-name text-white font-bold">{{userInfo && userInfo.nickName ? userInfo.nickName : '用户'}}</text>
+      <text class="user-id text-ghost-muted">
+        <text wx:if="{{userInfo && userInfo.loginType === 'wechat'}}">微信登录</text>
+        <text wx:elif="{{userInfo && userInfo.loginType === 'phone'}}">手机登录</text>
+        <text wx:else>匿名登录</text>
+      </text>
+    </view>
+    <view class="user-status">
+      <text class="status-text text-gold">在线</text>
+    </view>
+  </view>
+
+  <view class="stats-card glass-card animate-fade-up" style="animation-delay: 0.15s;">
+    <view class="stat-item">
+      <text class="stat-value text-gold font-bold">{{letterCount}}</text>
+      <text class="stat-label text-ghost-muted">已写信件</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value text-gold font-bold">{{goal ? goal.name : '未设定'}}</text>
+      <text class="stat-label text-ghost-muted">记录对象</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value text-gold font-bold">{{userMemory && userMemory.history ? userMemory.history.totalConversations : 0}}</text>
+      <text class="stat-label text-ghost-muted">对话次数</text>
+    </view>
+  </view>
+
+  <view class="memory-section animate-fade-up" style="animation-delay: 0.2s;">
+    <view class="section-header">
+      <text class="section-title text-white font-bold">用户记忆</text>
+      <text class="section-desc text-ghost-muted">AI已记住的信息</text>
+    </view>
+
+    <view class="memory-cards">
+      <view wx:if="{{userMemory && userMemory.basicInfo && (userMemory.basicInfo.birthPlace || userMemory.basicInfo.birthDate || userMemory.basicInfo.occupation)}}" class="memory-card glass-card">
+        <text class="memory-card-title text-gold">基本信息</text>
+        <view class="memory-list">
+          <view wx:if="{{userMemory.basicInfo.birthPlace}}" class="memory-item">
+            <view class="memory-icon icon-location"></view>
+            <text class="memory-text">{{userMemory.basicInfo.birthPlace}}</text>
+          </view>
+          <view wx:if="{{userMemory.basicInfo.birthDate}}" class="memory-item">
+            <view class="memory-icon icon-date"></view>
+            <text class="memory-text">{{userMemory.basicInfo.birthDate}}</text>
+          </view>
+          <view wx:if="{{userMemory.basicInfo.occupation}}" class="memory-item">
+            <view class="memory-icon icon-work"></view>
+            <text class="memory-text">{{userMemory.basicInfo.occupation}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{userMemory && userMemory.basicInfo && userMemory.basicInfo.hobbies && userMemory.basicInfo.hobbies.length > 0}}" class="memory-card glass-card">
+        <text class="memory-card-title text-gold">爱好</text>
+        <view class="hobby-tags">
+          <text wx:for="{{userMemory.basicInfo.hobbies}}" wx:key="*this" class="hobby-tag">{{item}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{userMemory && userMemory.preferences && userMemory.preferences.favoriteTopics && userMemory.preferences.favoriteTopics.length > 0}}" class="memory-card glass-card">
+        <text class="memory-card-title text-gold">喜欢的话题</text>
+        <view class="hobby-tags">
+          <text wx:for="{{userMemory.preferences.favoriteTopics}}" wx:key="*this" class="hobby-tag">{{item}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{userMemory && userMemory.history && userMemory.history.keyMemories && userMemory.history.keyMemories.length > 0}}" class="memory-card glass-card">
+        <text class="memory-card-title text-gold">关键记忆</text>
+        <view class="memory-list">
+          <view wx:for="{{userMemory.history.keyMemories.slice(0, 3)}}" wx:key="*this" class="memory-item">
+            <view class="memory-icon icon-memory"></view>
+            <text class="memory-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="(!userMemory || !userMemory.basicInfo || (!userMemory.basicInfo.birthPlace && !userMemory.basicInfo.birthDate && !userMemory.basicInfo.occupation)) && (!userMemory || !userMemory.basicInfo || !userMemory.basicInfo.hobbies || userMemory.basicInfo.hobbies.length === 0) && (!userMemory || !userMemory.preferences || !userMemory.preferences.favoriteTopics || userMemory.preferences.favoriteTopics.length === 0) && (!userMemory || !userMemory.history || !userMemory.history.keyMemories || userMemory.history.keyMemories.length === 0)" class="empty-memory glass-card">
+        <view class="empty-icon icon-empty"></view>
+        <text class="empty-text text-ghost-muted">还没有记忆，去对话中聊聊吧</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="menu-list animate-fade-up" style="animation-delay: 0.25s;">
+    <view class="menu-item glass-card" bindtap="onEditGoal">
+      <view class="menu-icon icon-goal"></view>
+      <text class="menu-text text-white">我的目标</text>
+      <text class="menu-arrow">→</text>
+    </view>
+    <view wx:if="{{biography}}" class="menu-item glass-card" bindtap="onViewBiography">
+      <view class="menu-icon icon-book"></view>
+      <text class="menu-text text-white">查看传记</text>
+      <text class="menu-arrow">→</text>
+    </view>
+    <view class="menu-item glass-card" bindtap="onShowcase">
+      <view class="menu-icon icon-book"></view>
+      <text class="menu-text text-white">产品介绍</text>
+      <text class="menu-arrow">→</text>
+    </view>
+    <view class="menu-item glass-card" bindtap="onSampleBiography">
+      <view class="menu-icon icon-book"></view>
+      <text class="menu-text text-white">示例传记</text>
+      <text class="menu-arrow">→</text>
+    </view>
+    <view class="menu-item glass-card" bindtap="onAbout">
+      <view class="menu-icon icon-info"></view>
+      <text class="menu-text text-white">关于我们</text>
+      <text class="menu-arrow">→</text>
+    </view>
+    <view class="menu-item glass-card" bindtap="onPrivacy">
+      <view class="menu-icon icon-info"></view>
+      <text class="menu-text text-white">隐私政策</text>
+      <text class="menu-arrow">→</text>
+    </view>
+    <view class="menu-item glass-card" bindtap="onUserAgreement">
+      <view class="menu-icon icon-info"></view>
+      <text class="menu-text text-white">用户协议</text>
+      <text class="menu-arrow">→</text>
+    </view>
+    <view class="menu-item glass-card" bindtap="onClearMemory">
+      <view class="menu-icon icon-trash"></view>
+      <text class="menu-text text-white">清除记忆</text>
+      <text class="menu-arrow">→</text>
+    </view>
+    <view class="menu-item glass-card danger" bindtap="onLogout">
+      <view class="menu-icon icon-logout"></view>
+      <text class="menu-text text-white">退出登录</text>
+      <text class="menu-arrow">→</text>
+    </view>
+  </view>
+
+  <view class="footer animate-fade-up" style="animation-delay: 0.3s;">
+    <text class="footer-text text-ghost-faint">岁月书 v1.1.0</text>
+    <text class="footer-copyright text-ghost-faint">(c) 2026 岁月书团队</text>
+  </view>
+</view>

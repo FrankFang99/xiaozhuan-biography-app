@@ -1,0 +1,81 @@
+<view class="page-container">
+  <view class="header animate-fade-up">
+    <view class="header-content">
+      <text class="title font-serif text-shadow-glow">信夹</text>
+      <text class="subtitle text-ghost-muted">共 {{letters.length}} 封信</text>
+    </view>
+    <view class="header-count">
+      <text class="count-number text-gold">{{letters.length}}</text>
+      <text class="count-label text-ghost-faint">封</text>
+    </view>
+  </view>
+
+  <view class="progress-card glass-card animate-fade-up" style="animation-delay: 0.1s;">
+    <view class="flex-between mb-3">
+      <text class="text-ghost-gray">自传进度</text>
+      <text class="font-bold text-gold text-xl">{{progress}}%</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%;"></view>
+    </view>
+    <view class="flex-between mt-3">
+      <text class="text-ghost-faint text-sm">{{currentLetterCount}}/{{targetLetterCount}} 封信</text>
+      <text class="text-ghost-faint text-sm">还剩{{daysRemaining}}天</text>
+    </view>
+  </view>
+
+  <view wx:if="{{biography}}" class="biography-card glass-card-strong animate-fade-up" style="animation-delay: 0.15s;" bindtap="onViewBiography">
+    <view class="biography-header">
+      <view class="biography-icon icon-book"></view>
+      <view class="biography-info">
+        <text class="biography-title text-white font-bold">{{biography.title}}</text>
+        <text class="biography-status text-gold">已完成</text>
+      </view>
+    </view>
+    <text class="biography-preview text-ghost-muted">点击查看完整传记</text>
+  </view>
+
+  <view class="letter-list animate-fade-up" style="animation-delay: 0.2s;">
+    <view 
+      wx:for="{{letters}}" 
+      wx:key="id" 
+      class="letter-item glass-card"
+      bindtap="onLetterTap"
+      data-id="{{item.id}}"
+    >
+      <view class="letter-header">
+        <text class="letter-date">{{item.date}}</text>
+        <text class="letter-chapter text-gold">{{item.chapter}}</text>
+      </view>
+      <text class="letter-title text-white font-bold">{{item.title}}</text>
+      <text class="letter-preview text-ghost-muted line-clamp-2">{{item.content}}</text>
+    </view>
+
+    <view wx:if="{{letters.length === 0 && !biography}}" class="empty-state">
+      <view class="empty-icon-container animate-float">
+        <view class="empty-icon icon-empty"></view>
+      </view>
+      <text class="empty-text text-white">还没有信件</text>
+      <text class="empty-hint text-ghost-muted">点击下方按钮开始写第一封信</text>
+    </view>
+  </view>
+
+  <view class="fab" bindtap="onWriteLetter">
+    <view class="fab-icon icon-write"></view>
+    <text class="fab-text">写一封信</text>
+  </view>
+
+  <view wx:if="{{showBiography}}" class="modal" bindtap="onCloseBiography">
+    <view class="modal-content glass-card-strong" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title font-serif">{{biography.title}}</text>
+        <button class="modal-close" bindtap="onCloseBiography">
+          <view class="close-icon"></view>
+        </button>
+      </view>
+      <scroll-view class="modal-body" scroll-y>
+        <text class="chapter-text">{{biography.content}}</text>
+      </scroll-view>
+    </view>
+  </view>
+</view>
