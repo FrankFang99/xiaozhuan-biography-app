@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAppStore } from '../stores/useAppStore';
-import { Phone, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Phone, User, ArrowRight, Scan, X } from 'lucide-react';
 
 interface Star {
   id: number;
@@ -19,6 +19,8 @@ export function LoginPage() {
   const [showCode, setShowCode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [showWechatModal, setShowWechatModal] = useState(false);
+  const [wechatStatus, setWechatStatus] = useState<'qrcode' | 'scanning' | 'success'>('qrcode');
   
   const login = useAppStore((state) => state.login);
 
@@ -76,6 +78,29 @@ export function LoginPage() {
 
   const handleGuestLogin = () => {
     login('guest');
+  };
+
+  const handleWechatLogin = () => {
+    setShowWechatModal(true);
+    setWechatStatus('qrcode');
+  };
+
+  const handleScanWechat = () => {
+    setWechatStatus('scanning');
+    
+    setTimeout(() => {
+      setWechatStatus('success');
+      setTimeout(() => {
+        const wechatPhone = '13800138000';
+        login(wechatPhone);
+        setShowWechatModal(false);
+      }, 1500);
+    }, 2500);
+  };
+
+  const closeWechatModal = () => {
+    setShowWechatModal(false);
+    setWechatStatus('qrcode');
   };
 
   return (
@@ -177,7 +202,17 @@ export function LoginPage() {
             </button>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-white/10">
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <button
+              onClick={handleWechatLogin}
+              className="w-full py-3 bg-[#07C160] rounded-xl text-white font-medium hover:bg-[#06AD56] transition-colors flex items-center justify-center gap-2 shadow-lg"
+            >
+              <Scan className="w-5 h-5" />
+              <span>微信扫码登录</span>
+            </button>
+          </div>
+
+          <div className="mt-6">
             <button
               onClick={handleGuestLogin}
               className="w-full py-3 bg-white/5 border border-white/20 rounded-xl text-white/70 font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
@@ -194,6 +229,77 @@ export function LoginPage() {
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0A1628] to-transparent"></div>
+
+      {showWechatModal && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+            <div className="bg-[#07C160] px-6 py-4 flex items-center justify-between">
+              <h3 className="text-white font-bold text-lg">微信扫码登录</h3>
+              <button onClick={closeWechatModal} className="text-white/80 hover:text-white">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <p className="text-gray-600">使用微信扫描二维码登录</p>
+              </div>
+              
+              <div className="relative">
+                {wechatStatus === 'qrcode' && (
+                  <div className="w-64 h-64 mx-auto bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300">
+                    <div className="text-center">
+                      <div className="w-48 h-48 mx-auto mb-4 bg-white rounded-lg shadow-md overflow-hidden">
+                        <img 
+                          src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://frankfang99.github.io/xiaozhuan-biography-app/login" 
+                          alt="微信登录二维码" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <p className="text-sm text-gray-500">扫码即可登录</p>
+                    </div>
+                  </div>
+                )}
+                
+                {wechatStatus === 'scanning' && (
+                  <div className="w-64 h-64 mx-auto bg-gray-100 rounded-xl flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-[#07C160] rounded-full flex items-center justify-center">
+                        <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      </div>
+                      <p className="text-[#07C160] font-medium">正在验证...</p>
+                      <p className="text-sm text-gray-500 mt-2">请在手机上确认登录</p>
+                    </div>
+                  </div>
+                )}
+                
+                {wechatStatus === 'success' && (
+                  <div className="w-64 h-64 mx-auto bg-gray-100 rounded-xl flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-[#07C160] rounded-full flex items-center justify-center">
+                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <p className="text-[#07C160] font-bold">登录成功</p>
+                      <p className="text-sm text-gray-500 mt-2">正在跳转...</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {wechatStatus === 'qrcode' && (
+                <button
+                  onClick={handleScanWechat}
+                  className="w-full mt-6 py-3 bg-[#07C160] rounded-xl text-white font-medium hover:bg-[#06AD56] transition-colors"
+                >
+                  模拟扫码登录
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
