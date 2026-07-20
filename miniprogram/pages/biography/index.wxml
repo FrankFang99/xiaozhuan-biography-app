@@ -1,0 +1,294 @@
+<view class="page-container">
+  <view class="universe-view" wx:if="{{viewMode === 'universe'}}">
+    <view class="universe-header">
+      <text class="universe-title">传记宇宙</text>
+      <text class="universe-subtitle">滑动探索，点击星星聆听故事</text>
+    </view>
+
+    <scroll-view 
+      class="universe-scroll" 
+      scroll-x 
+      scroll-y 
+      enable-flex
+      enhanced
+      show-scrollbar="false"
+    >
+      <view class="universe-canvas">
+        <view class="universe-bg">
+          <view class="stars-bg">
+            <view 
+              wx:for="{{bgStars}}" 
+              wx:key="id" 
+              class="bg-star"
+              style="left: {{item.x}}%; top: {{item.y}}%; opacity: {{item.opacity}}; width: {{item.size}}rpx; height: {{item.size}}rpx; animation-duration: {{item.duration}}s; animation-delay: {{item.delay}}s;"
+            >
+              <view class="star-dot"></view>
+            </view>
+          </view>
+        </view>
+
+        <view 
+          wx:for="{{biographies}}" 
+          wx:key="id"
+          class="person-star"
+          style="left: {{item.starPosition.x}}rpx; top: {{item.starPosition.y}}rpx; width: {{item.starSize}}rpx; height: {{item.starSize}}rpx;"
+          bindtap="clickStar"
+          data-id="{{item.id}}"
+        >
+          <view class="star-core" style="background: {{item.starColor}};"></view>
+          <view class="star-ring" style="border-color: {{item.starColor}};"></view>
+          <view class="star-glow" style="background: {{item.starColor}};"></view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="star-popup" wx:if="{{selectedStar}}" bindtap="closeStarPopup">
+      <view class="popup-content" catchtap="preventClose">
+        <view class="popup-avatar">
+          <image 
+            wx:if="{{selectedStar.avatarImage}}" 
+            class="popup-avatar-image" 
+            src="{{selectedStar.avatarImage}}" 
+            mode="aspectFill"
+            binderror="onAvatarError"
+            data-type="popup"
+          />
+          <view wx:else class="popup-avatar-initial">
+            <text class="popup-avatar-text">{{selectedStar.avatar}}</text>
+          </view>
+        </view>
+        <text class="popup-name">{{selectedStar.name}}</text>
+        <text class="popup-bio">{{selectedStar.bio}}</text>
+        <text class="popup-intro">{{selectedStar.intro}}</text>
+        <button class="popup-btn" bindtap="startReading">
+          <text class="popup-btn-text">开始阅读</text>
+        </button>
+        <view class="popup-close" bindtap="closeStarPopup">
+          <view class="close-icon">
+            <view class="close-line close-line-1"></view>
+            <view class="close-line close-line-2"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="book-cover" wx:if="{{viewMode === 'cover'}}">
+    <view class="cover-bg">
+      <view class="stars-bg">
+        <view 
+          wx:for="{{bgStars}}" 
+          wx:key="id" 
+          class="bg-star"
+          style="left: {{item.x}}%; top: {{item.y}}%; opacity: {{item.opacity}}; width: {{item.size}}rpx; height: {{item.size}}rpx; animation-duration: {{item.duration}}s; animation-delay: {{item.delay}}s;"
+        >
+          <view class="star-dot"></view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="cover-content">
+      <view class="cover-avatar">
+        <image 
+          wx:if="{{currentBiography.avatarImage}}" 
+          class="cover-avatar-image" 
+          src="{{currentBiography.avatarImage}}" 
+          mode="aspectFill"
+          binderror="onAvatarError"
+          data-type="cover"
+        />
+        <view wx:else class="cover-avatar-initial">
+          <text class="cover-avatar-text">{{currentBiography.avatar}}</text>
+        </view>
+      </view>
+      <text class="cover-title">{{currentBiography.name}}</text>
+      <text class="cover-subtitle">{{currentBiography.bio}}</text>
+      <text class="cover-date">2026年7月</text>
+      <view class="cover-decoration">
+        <view class="line"></view>
+        <view class="diamond"></view>
+        <view class="line"></view>
+      </view>
+      <text class="cover-tag">{{currentBiography.tag}}</text>
+    </view>
+    
+    <view class="open-book-btn" bindtap="openBook">
+      <text class="btn-text">翻开人生之书</text>
+      <view class="arrow">→</view>
+    </view>
+  </view>
+
+  <scroll-view class="book-content" wx:if="{{viewMode === 'content'}}" scroll-y>
+    <view class="book-header">
+      <text class="book-title">{{currentBiography.name}}的人生故事</text>
+      <text class="book-subtitle">{{currentBiography.bio}}</text>
+    </view>
+
+    <view class="timeline-section">
+      <view class="section-title">
+        <view class="icon-calendar"></view>
+        <text>人生时间线</text>
+      </view>
+      <scroll-view class="timeline-scroll" scroll-x>
+        <view class="timeline-container">
+          <view 
+            wx:for="{{currentBiography.timeline}}" 
+            wx:key="index" 
+            class="timeline-item"
+          >
+            <view class="timeline-dot"></view>
+            <view class="timeline-content">
+              <text class="timeline-year">{{item.year}}</text>
+              <text class="timeline-event">{{item.event}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="book-intro glass-card">
+      <text class="intro-title">引言</text>
+      <text class="intro-content">{{currentBiography.intro}}</text>
+    </view>
+
+    <view wx:for="{{currentBiography.chapters}}" wx:key="index" class="chapter-section">
+      <view class="chapter-header">
+        <view class="chapter-number-box">
+          <text class="chapter-number">{{String(index + 1).padStart(2, '0')}}</text>
+        </view>
+        <view class="chapter-info">
+          <text class="chapter-title">{{item.title}}</text>
+          <text class="chapter-year">{{item.year}}</text>
+        </view>
+        <view class="emotion-tag" wx:if="{{item.emotion}}">
+          <text class="emotion-text">{{getEmotionText(item.emotion)}}</text>
+        </view>
+      </view>
+
+      <view class="photo-placeholder" wx:if="{{index < 4}}">
+        <view class="photo-frame">
+          <view class="photo-icon">
+            <view class="frame-corner frame-corner-tl"></view>
+            <view class="frame-corner frame-corner-tr"></view>
+            <view class="frame-corner frame-corner-bl"></view>
+            <view class="frame-corner frame-corner-br"></view>
+            <view class="photo-inner"></view>
+          </view>
+          <text class="photo-title">{{currentBiography.photos[index].title}}</text>
+          <text class="photo-desc">{{currentBiography.photos[index].desc}}</text>
+        </view>
+      </view>
+      
+      <view class="chapter-content">
+        <text class="content-text">{{item.content}}</text>
+      </view>
+      
+      <view class="chapter-quote" wx:if="{{item.quote}}">
+        <text class="quote-icon">"</text>
+        <text class="quote-text">{{item.quote}}</text>
+        <text class="quote-author">—— {{currentBiography.name}}</text>
+      </view>
+    </view>
+
+    <view class="book-footer glass-card">
+      <text class="footer-title">写在最后</text>
+      <text class="footer-content">{{currentBiography.ending}}</text>
+      <view class="footer-family">
+        <view class="family-label">
+          <view class="icon-letter"></view>
+          <text>家人寄语</text>
+        </view>
+        <text class="family-content">{{currentBiography.familyView.content}}</text>
+      </view>
+    </view>
+
+    <view class="book-end">
+      <view class="end-decoration">
+        <view class="diamond"></view>
+      </view>
+      <text class="end-text">THE END</text>
+      <text class="end-author">FrankFang · 记录每一个不平凡的人生</text>
+    </view>
+  </scroll-view>
+
+  <view class="nav-bar" wx:if="{{viewMode === 'content'}}">
+    <view class="nav-btn" bindtap="closeBook">
+      <view class="nav-icon-close">
+        <view class="close-line close-line-1"></view>
+        <view class="close-line close-line-2"></view>
+      </view>
+      <text class="nav-text">关闭</text>
+    </view>
+    <view class="nav-indicator">
+      <text class="indicator-text">{{currentChapter + 1}} / {{currentBiography.chapters.length}}</text>
+    </view>
+    <view class="nav-btn" bindtap="toggleTableOfContents">
+      <view class="nav-icon-menu">
+        <view class="menu-line menu-line-1"></view>
+        <view class="menu-line menu-line-2"></view>
+        <view class="menu-line menu-line-3"></view>
+      </view>
+      <text class="nav-text">目录</text>
+    </view>
+  </view>
+
+  <view class="toc-overlay" wx:if="{{showTableOfContents}}" bindtap="toggleTableOfContents">
+    <view class="toc-content" catchtap="preventClose">
+      <view class="toc-header">
+        <text class="toc-title">目录</text>
+        <view class="toc-close" bindtap="toggleTableOfContents">
+          <view class="close-icon">
+            <view class="close-line close-line-1"></view>
+            <view class="close-line close-line-2"></view>
+          </view>
+        </view>
+      </view>
+      <scroll-view class="toc-list" scroll-y>
+        <view 
+          wx:for="{{currentBiography.chapters}}" 
+          wx:key="index"
+          class="toc-item {{currentChapter === index ? 'active' : ''}}"
+          bindtap="jumpToChapter"
+          data-index="{{index}}"
+        >
+          <text class="toc-number">{{String(index + 1).padStart(2, '0')}}</text>
+          <text class="toc-chapter">{{item.title}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view class="story-selector" wx:if="{{showSelector}}">
+    <view class="selector-overlay" bindtap="closeSelector"></view>
+    <view class="selector-content">
+      <text class="selector-title">选择传记</text>
+      <view class="selector-list">
+        <view 
+          wx:for="{{biographies}}" 
+          wx:key="id"
+          class="selector-item {{currentBiography.id === item.id ? 'active' : ''}}"
+          bindtap="selectBiography"
+          data-id="{{item.id}}"
+        >
+          <view class="selector-avatar">
+            <image 
+              wx:if="{{item.avatarImage}}" 
+              class="selector-avatar-image" 
+              src="{{item.avatarImage}}" 
+              mode="aspectFill"
+              binderror="onAvatarError"
+              data-type="selector"
+            />
+            <view wx:else class="selector-avatar-initial">
+              <text class="selector-avatar-text">{{item.avatar}}</text>
+            </view>
+          </view>
+          <view class="selector-info">
+            <text class="selector-name">{{item.name}}</text>
+            <text class="selector-bio">{{item.bio}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

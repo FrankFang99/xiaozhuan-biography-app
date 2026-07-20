@@ -1,0 +1,25 @@
+<view class="tab-bar">
+  <view 
+    wx:for="{{tabs}}" 
+    wx:key="pagePath"
+    class="tab-item {{selectedIndex === index ? 'active' : ''}}"
+    bindtap="onTabTap"
+    data-index="{{index}}"
+  >
+    <view class="tab-icon">
+      <view class="icon-chat" wx:if="{{item.icon === 'chat'}}">
+        <view class="chat-bubble"></view>
+        <view class="chat-bubble-small"></view>
+      </view>
+      <view class="icon-letter" wx:if="{{item.icon === 'letter'}}">
+        <view class="letter-envelope"></view>
+        <view class="letter-flap"></view>
+      </view>
+      <view class="icon-my" wx:if="{{item.icon === 'my'}}">
+        <view class="my-circle"></view>
+        <view class="my-inner"></view>
+      </view>
+    </view>
+    <text class="tab-text">{{item.text}}</text>
+  </view>
+</view>

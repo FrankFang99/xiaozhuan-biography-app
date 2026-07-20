@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="header">
+    <text class="title">我的传记</text>
+    <text class="subtitle">{{goal ? goal.name : '老人'}}的故事</text>
+  </view>
+
+  <view class="book-content">
+    <view class="chapter-list">
+      <view 
+        wx:for="{{chapters}}" 
+        wx:key="title" 
+        class="chapter-item {{selectedChapter === item.title ? 'active' : ''}}"
+        bindtap="onSelectChapter"
+        data-title="{{item.title}}"
+      >
+        <text class="chapter-number">{{item.number}}</text>
+        <text class="chapter-title">{{item.title}}</text>
+      </view>
+    </view>
+
+    <view class="chapter-content">
+      <view wx:if="{{selectedChapterContent}}">
+        <text class="chapter-header">{{selectedChapter}}</text>
+        <text class="chapter-body">{{selectedChapterContent}}</text>
+      </view>
+      <view wx:else class="empty-content">
+        <text class="empty-icon">📖</text>
+        <text class="empty-text">请选择章节查看内容</text>
+      </view>
+    </view>
+  </view>
+</view>

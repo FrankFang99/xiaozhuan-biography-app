@@ -1,0 +1,109 @@
+<view class="page-container">
+  <view class="header animate-fade-up">
+    <view class="header-content">
+      <text class="title font-serif text-shadow-glow">信夹</text>
+      <text class="subtitle text-ghost-muted">记录人生的每个章节</text>
+    </view>
+    <view class="header-count">
+      <text class="count-number text-gold">{{currentLetterCount}}</text>
+      <text class="count-label text-ghost-faint">/{{targetLetterCount}}章</text>
+    </view>
+  </view>
+
+  <view class="progress-card glass-card animate-fade-up" style="animation-delay: 0.1s;">
+    <view class="flex-between mb-3">
+      <text class="text-ghost-gray">自传进度</text>
+      <text class="font-bold text-gold text-xl">{{progress}}%</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%;"></view>
+    </view>
+    <view class="flex-between mt-3">
+      <text class="text-ghost-faint text-sm">已完成{{currentLetterCount}}/{{targetLetterCount}}章</text>
+      <text class="text-ghost-faint text-sm">还剩{{daysRemaining}}天</text>
+    </view>
+  </view>
+
+  <view wx:if="{{biography}}" class="biography-card glass-card-strong animate-fade-up" style="animation-delay: 0.15s;" bindtap="onViewBiography">
+    <view class="biography-header">
+      <view class="biography-icon icon-book"></view>
+      <view class="biography-info">
+        <text class="biography-title text-white font-bold">{{biography.title}}</text>
+        <text class="biography-status text-gold">已完成</text>
+      </view>
+    </view>
+    <text class="biography-preview text-ghost-muted">点击查看完整传记</text>
+  </view>
+
+  <view class="chapter-list animate-fade-up" style="animation-delay: 0.2s;">
+    <view class="chapter-section">
+      <view class="section-title">
+        <text class="section-title-text">人生章节</text>
+      </view>
+      
+      <view 
+        wx:for="{{chapters}}" 
+        wx:key="id" 
+        class="chapter-item glass-card {{item.completed ? 'completed' : ''}} {{item.isCurrent ? 'current' : ''}}"
+        bindtap="onChapterTap"
+        data-id="{{item.id}}"
+      >
+        <view class="chapter-left">
+          <view class="chapter-icon">
+            <text wx:if="{{item.completed}}" class="icon-check">✓</text>
+            <text wx:elif="{{item.isCurrent}}" class="icon-current">●</text>
+            <text wx:else class="icon-pending">{{index + 1}}</text>
+          </view>
+          <view class="chapter-info">
+            <text class="chapter-name text-white font-bold">{{item.name}}</text>
+            <text class="chapter-desc text-ghost-muted">{{item.questions.length}}个话题</text>
+          </view>
+        </view>
+        
+        <view class="chapter-right">
+          <view wx:if="{{item.completed && item.letter}}" class="chapter-status">
+            <text class="status-text">已完成</text>
+          </view>
+          <view wx:elif="{{item.isCurrent}}" class="chapter-status current-status">
+            <text class="status-text">进行中</text>
+          </view>
+          <view wx:else class="chapter-status pending-status">
+            <text class="status-text">未开始</text>
+          </view>
+          <text class="chapter-arrow">→</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showBiography}}" class="modal" bindtap="onCloseBiography">
+    <view class="modal-content glass-card-strong" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title font-serif">{{biography.title}}</text>
+        <button class="modal-close" bindtap="onCloseBiography">
+          <view class="close-icon"></view>
+        </button>
+      </view>
+      <scroll-view class="modal-body" scroll-y>
+        <text class="chapter-text">{{biography.content}}</text>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view wx:if="{{showLetterDetail && selectedLetter}}" class="modal" bindtap="onCloseLetterDetail">
+    <view class="modal-content glass-card-strong" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title font-serif">{{selectedLetter.chapter}} · {{selectedLetter.title}}</text>
+        <button class="modal-close" bindtap="onCloseLetterDetail">
+          <view class="close-icon"></view>
+        </button>
+      </view>
+      <scroll-view class="modal-body" scroll-y>
+        <view class="letter-detail-header">
+          <text class="letter-detail-date">{{selectedLetter.date}}</text>
+        </view>
+        <text class="chapter-text">{{selectedLetter.content}}</text>
+      </scroll-view>
+    </view>
+  </view>
+</view>

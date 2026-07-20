@@ -1,0 +1,143 @@
+<view class="page-container">
+  <view class="header">
+    <view class="header-title">
+      <text class="title-text">聆听岁月的声音</text>
+    </view>
+    <view class="header-desc">
+      <text class="desc-text">每一个平凡的人生，都值得被铭记</text>
+    </view>
+  </view>
+
+  <view class="stories-section">
+    <view 
+      wx:for="{{stories}}" 
+      wx:key="id" 
+      class="story-card"
+      bindtap="selectStory"
+      data-id="{{item.id}}"
+    >
+      <view class="story-header">
+        <view class="story-avatar">
+          <image 
+            wx:if="{{item.avatarImage}}" 
+            class="story-avatar-image" 
+            src="{{item.avatarImage}}" 
+            mode="aspectFill"
+            binderror="onAvatarError"
+            data-id="{{item.id}}"
+          />
+          <view wx:else class="story-avatar-initial">
+            <text class="story-avatar-text">{{item.avatar}}</text>
+          </view>
+        </view>
+        <view class="story-info">
+          <text class="story-name">{{item.name}}</text>
+          <text class="story-bio">{{item.bio}}</text>
+        </view>
+        <view class="story-tag">
+          <text class="tag-text">{{item.tag}}</text>
+        </view>
+      </view>
+      
+      <view class="story-preview">
+        <text class="preview-text">{{item.preview}}</text>
+      </view>
+      
+      <view class="story-stats">
+        <view class="stat-item">
+          <view class="stat-icon">
+            <view class="book-icon">
+              <view class="book-spine"></view>
+              <view class="book-page"></view>
+            </view>
+          </view>
+          <text class="stat-text">{{item.chapters.length}}章</text>
+        </view>
+        <view class="stat-item">
+          <view class="stat-icon">
+            <view class="clock-outline"></view>
+            <view class="clock-hand"></view>
+          </view>
+          <text class="stat-text">{{item.totalWords}}字</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="action-area">
+    <button class="btn-secondary" bindtap="viewBiography">
+      <text class="btn-text-secondary">查看完整传记效果</text>
+    </button>
+    <button class="btn-primary" bindtap="startRecording">
+      <text class="btn-text">开始记录我的人生故事</text>
+    </button>
+  </view>
+
+  <view wx:if="{{selectedStory}}" class="story-modal" bindtap="closeModal">
+    <view class="modal-content" catchtap="preventClose">
+      <view class="modal-header">
+        <view class="modal-avatar">
+          <image 
+            wx:if="{{selectedStory.avatarImage}}" 
+            class="modal-avatar-image" 
+            src="{{selectedStory.avatarImage}}" 
+            mode="aspectFill"
+            binderror="onModalAvatarError"
+          />
+          <view wx:else class="modal-avatar-initial">
+            <text class="modal-avatar-text">{{selectedStory.avatar}}</text>
+          </view>
+        </view>
+        <view class="modal-info">
+          <text class="modal-name">{{selectedStory.name}}</text>
+          <text class="modal-bio">{{selectedStory.bio}}</text>
+        </view>
+        <view class="close-btn" bindtap="closeModal">
+          <view class="close-icon">
+            <view class="close-line close-line-1"></view>
+            <view class="close-line close-line-2"></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="modal-tabs">
+        <view 
+          wx:for="{{tabs}}" 
+          wx:key="id"
+          class="tab-item {{currentTab === item.id ? 'active' : ''}}"
+          bindtap="switchTab"
+          data-tab="{{item.id}}"
+        >
+          <text class="tab-text">{{item.name}}</text>
+        </view>
+      </view>
+
+      <scroll-view class="modal-content-area" scroll-y>
+        <view wx:if="{{currentTab === 'preview'}}">
+          <view wx:for="{{selectedStory.chapters}}" wx:key="index" class="chapter-card">
+            <view class="chapter-header">
+              <text class="chapter-number">{{String(index + 1).padStart(2, '0')}}</text>
+              <text class="chapter-title">{{item.title}}</text>
+            </view>
+            <text class="chapter-excerpt">{{item.excerpt}}</text>
+            <text class="chapter-word-count">{{item.wordCount}}字</text>
+          </view>
+        </view>
+
+        <view wx:if="{{currentTab === 'full'}}">
+          <view wx:for="{{selectedStory.chapters}}" wx:key="index" class="full-chapter">
+            <text class="full-chapter-title">{{item.title}}</text>
+            <text class="full-chapter-content">{{item.content}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{currentTab === 'family'}}">
+          <view class="family-card">
+            <text class="family-title">{{selectedStory.familyView.title}}</text>
+            <text class="family-content">{{selectedStory.familyView.content}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

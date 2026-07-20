@@ -1,0 +1,9 @@
+{
+  "name": "callLLM",
+  "version": "1.0.0",
+  "description": "调用MiniMax大模型API",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

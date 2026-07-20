@@ -1,0 +1,250 @@
+<view class="page-container">
+  <view wx:if="{{!showOutline}}" class="content">
+    <view class="header">
+      <view class="logo-container animate-float">
+        <image class="logo-image" src="/images/biographer_avatar.jpg" mode="aspectFill" />
+      </view>
+      <text class="title font-serif text-shadow-glow animate-fade-up">{{isEditing ? '修改目标' : '设定目标'}}</text>
+      <text class="subtitle text-ghost-muted animate-fade-up" style="animation-delay: 0.2s;">{{isEditing ? '调整您的记录计划' : '告诉我们你想记录谁的故事'}}</text>
+    </view>
+
+    <view class="form glass-card-strong animate-fade-up" style="animation-delay: 0.1s;">
+      <view class="section">
+        <text class="section-title text-white font-bold">称呼</text>
+        <input 
+          class="input" 
+          placeholder="例如：奶奶、爸爸、爷爷" 
+          placeholder-class="input-placeholder"
+          bindinput="onNameInput"
+          value="{{name}}"
+        />
+      </view>
+
+      <view class="section">
+        <text class="section-title text-white font-bold">关系</text>
+        <view class="relation-options">
+          <view 
+            class="relation-item {{selectedRelation === 'grandparent' ? 'active' : ''}}" 
+            bindtap="onSelectRelation"
+            data-value="grandparent"
+          >
+            <view class="relation-icon icon-elder"></view>
+            <text class="relation-text">祖父母</text>
+          </view>
+          <view 
+            class="relation-item {{selectedRelation === 'parent' ? 'active' : ''}}" 
+            bindtap="onSelectRelation"
+            data-value="parent"
+          >
+            <view class="relation-icon icon-parent"></view>
+            <text class="relation-text">父母</text>
+          </view>
+          <view 
+            class="relation-item {{selectedRelation === 'self' ? 'active' : ''}}" 
+            bindtap="onSelectRelation"
+            data-value="self"
+          >
+            <view class="relation-icon icon-self"></view>
+            <text class="relation-text">自己</text>
+          </view>
+          <view 
+            class="relation-item {{selectedRelation === 'other' ? 'active' : ''}}" 
+            bindtap="onSelectRelation"
+            data-value="other"
+          >
+            <view class="relation-icon icon-other"></view>
+            <text class="relation-text">其他</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title text-white font-bold">目标完成时间</text>
+        <view class="time-options">
+          <view 
+            class="time-item {{selectedTime === 'week' ? 'active' : ''}}" 
+            bindtap="onSelectTime"
+            data-value="week"
+          >
+            <text class="time-text">一周内</text>
+          </view>
+          <view 
+            class="time-item {{selectedTime === 'month' ? 'active' : ''}}" 
+            bindtap="onSelectTime"
+            data-value="month"
+          >
+            <text class="time-text">一个月内</text>
+          </view>
+          <view 
+            class="time-item {{selectedTime === 'unlimited' ? 'active' : ''}}" 
+            bindtap="onSelectTime"
+            data-value="unlimited"
+          >
+            <text class="time-text">不限时间</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title text-white font-bold">完成传记所需信件数</text>
+        <view class="letter-options">
+          <view 
+            class="letter-item {{targetLetterCount === 3 ? 'active' : ''}}" 
+            bindtap="onSelectLetterCount"
+            data-value="3"
+          >
+            <text class="letter-num">3</text>
+            <text class="letter-text">封信件</text>
+          </view>
+          <view 
+            class="letter-item {{targetLetterCount === 5 ? 'active' : ''}}" 
+            bindtap="onSelectLetterCount"
+            data-value="5"
+          >
+            <text class="letter-num">5</text>
+            <text class="letter-text">封信件</text>
+          </view>
+          <view 
+            class="letter-item {{targetLetterCount === 7 ? 'active' : ''}}" 
+            bindtap="onSelectLetterCount"
+            data-value="7"
+          >
+            <text class="letter-num">7</text>
+            <text class="letter-text">封信件</text>
+          </view>
+          <view 
+            class="letter-item {{targetLetterCount === 10 ? 'active' : ''}}" 
+            bindtap="onSelectLetterCount"
+            data-value="10"
+          >
+            <text class="letter-num">10</text>
+            <text class="letter-text">封信件</text>
+          </view>
+        </view>
+        <text class="section-hint text-ghost-muted">达到目标信件数后，传记将自动完成</text>
+      </view>
+
+      <view class="section">
+        <text class="section-title text-white font-bold">传记结构</text>
+        <view class="structure-options">
+          <view 
+            class="structure-item {{selectedStructure === 'timeline' ? 'active' : ''}}" 
+            bindtap="onSelectStructure"
+            data-value="timeline"
+          >
+            <view class="structure-icon icon-timeline"></view>
+            <view class="structure-info">
+              <text class="structure-title">时间线模式</text>
+              <text class="structure-desc">按时间顺序记录人生历程</text>
+            </view>
+          </view>
+          <view 
+            class="structure-item {{selectedStructure === 'milestone' ? 'active' : ''}}" 
+            bindtap="onSelectStructure"
+            data-value="milestone"
+          >
+            <view class="structure-icon icon-milestone"></view>
+            <view class="structure-info">
+              <text class="structure-title">重大事件模式</text>
+              <text class="structure-desc">按人生重大事件记录故事</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title text-white font-bold">传记风格</text>
+        <view class="style-options">
+          <view 
+            class="style-item {{selectedStyle === 'warm' ? 'active' : ''}}" 
+            bindtap="onSelectStyle"
+            data-value="warm"
+          >
+            <view class="style-icon icon-warm"></view>
+            <text class="style-title">温馨回忆</text>
+            <text class="style-desc">亲切感人的回忆录风格</text>
+          </view>
+          <view 
+            class="style-item {{selectedStyle === 'formal' ? 'active' : ''}}" 
+            bindtap="onSelectStyle"
+            data-value="formal"
+          >
+            <view class="style-icon icon-formal"></view>
+            <text class="style-title">正式传记</text>
+            <text class="style-desc">庄重典雅的传记风格</text>
+          </view>
+          <view 
+            class="style-item {{selectedStyle === 'story' ? 'active' : ''}}" 
+            bindtap="onSelectStyle"
+            data-value="story"
+          >
+            <view class="style-icon icon-story"></view>
+            <text class="style-title">故事集</text>
+            <text class="style-desc">生动有趣的故事风格</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="footer animate-fade-up" style="animation-delay: 0.3s;">
+      <button class="start-btn btn-primary" bindtap="onStart">{{isEditing ? '保存修改' : '开始记录'}}</button>
+    </view>
+  </view>
+
+  <view wx:if="{{showOutline}}" class="outline-content">
+    <view class="header">
+      <view class="logo-container animate-float">
+        <image class="logo-image" src="/images/biographer_avatar.jpg" mode="aspectFill" />
+      </view>
+      <text class="title font-serif text-shadow-glow animate-fade-up">传记大纲</text>
+      <text class="subtitle text-ghost-muted animate-fade-up" style="animation-delay: 0.2s;">请确认您的传记记录框架</text>
+    </view>
+
+    <view class="outline-form glass-card-strong animate-fade-up" style="animation-delay: 0.1s;">
+      <view class="outline-header">
+        <text class="outline-title">记录框架</text>
+        <view class="regenerate-btn" bindtap="onRegenerateOutline">
+          <text class="regenerate-text">重新生成</text>
+        </view>
+      </view>
+
+      <view class="outline-stages">
+        <view 
+          wx:for="{{outlineStages}}" 
+          wx:key="id" 
+          class="outline-stage"
+        >
+          <view class="stage-number">
+            <text class="number-text">{{item.order}}</text>
+          </view>
+          <view class="stage-info">
+            <text class="stage-name">{{item.name}}</text>
+            <view class="stage-questions-preview">
+              <text class="question-preview" wx:for="{{item.questions.slice(0, 2)}}" wx:key="index" wx:for-item="q">{{q}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="outline-summary">
+        <view class="summary-item">
+          <text class="summary-label">记录对象</text>
+          <text class="summary-value">{{name}}</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-label">预计信件数</text>
+          <text class="summary-value">{{targetLetterCount}}封</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-label">完成时间</text>
+          <text class="summary-value">{{selectedTime === 'week' ? '一周内' : selectedTime === 'month' ? '一个月内' : '不限时间'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="footer outline-footer">
+      <button class="outline-btn outline-back" bindtap="onBackToEdit">返回修改</button>
+      <button class="outline-btn outline-confirm btn-primary" bindtap="onConfirmOutline">确认开始</button>
+    </view>
+  </view>
+</view>

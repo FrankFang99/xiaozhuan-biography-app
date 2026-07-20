@@ -1,0 +1,381 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8f9fb 0%, #f0f2f5 100%);
+  padding: 48rpx 36rpx;
+  padding-bottom: 240rpx;
+}
+
+.page-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8f9fb 0%, #f0f2f5 100%);
+  padding: 48rpx 36rpx;
+  padding-bottom: 240rpx;
+}
+
+.header {
+  margin-bottom: 36rpx;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 52rpx;
+  font-weight: bold;
+  color: #333333;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.subtitle {
+  font-size: 32rpx;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.header-count {
+  position: absolute;
+  right: 48rpx;
+  top: 60rpx;
+  text-align: right;
+}
+
+.count-number {
+  font-size: 64rpx;
+  font-weight: bold;
+  color: #d4a853;
+}
+
+.count-label {
+  font-size: 28rpx;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.progress-card {
+  margin-bottom: 36rpx;
+}
+
+.progress-bar {
+  height: 16rpx;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 32rpx;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d4a853, #e5c06f);
+  border-radius: 32rpx;
+  transition: width 0.5s ease;
+}
+
+.biography-card {
+  margin-bottom: 36rpx;
+  padding: 32rpx;
+}
+
+.biography-header {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.biography-icon {
+  width: 56rpx;
+  height: 56rpx;
+  position: relative;
+}
+
+.biography-icon.icon-book::before {
+  content: '';
+  position: absolute;
+  width: 48rpx;
+  height: 56rpx;
+  border: 4rpx solid #d4a853;
+  border-radius: 4rpx;
+  top: 0;
+  left: 4rpx;
+}
+
+.biography-icon.icon-book::after {
+  content: '';
+  position: absolute;
+  width: 4rpx;
+  height: 56rpx;
+  background: #d4a853;
+  top: 0;
+  left: 26rpx;
+}
+
+.biography-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.biography-title {
+  font-size: 36rpx;
+  color: #333333;
+}
+
+.biography-status {
+  font-size: 28rpx;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.biography-preview {
+  font-size: 28rpx;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.chapter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+}
+
+.chapter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.section-title {
+  padding: 0 8rpx;
+}
+
+.section-title-text {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', serif;
+}
+
+.chapter-item {
+  padding: 36rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.chapter-item:active {
+  transform: scale(0.98);
+}
+
+.chapter-item.completed {
+  border: 1rpx solid rgba(212, 168, 83, 0.3);
+  background: rgba(212, 168, 83, 0.08);
+}
+
+.chapter-item.current {
+  border: 2rpx solid rgba(212, 168, 83, 0.6);
+  background: rgba(212, 168, 83, 0.15);
+}
+
+.chapter-left {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.chapter-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.chapter-item.completed .chapter-icon {
+  background: linear-gradient(135deg, #d4a853 0%, #c73e3a 100%);
+  color: #333333;
+}
+
+.chapter-item.current .chapter-icon {
+  background: rgba(212, 168, 83, 0.3);
+  color: #d4a853;
+}
+
+.icon-check {
+  font-size: 36rpx;
+}
+
+.icon-current {
+  font-size: 24rpx;
+}
+
+.icon-pending {
+  font-size: 28rpx;
+}
+
+.chapter-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.chapter-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.chapter-desc {
+  font-size: 28rpx;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.chapter-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.chapter-status {
+  padding: 8rpx 24rpx;
+  border-radius: 20rpx;
+  background: rgba(212, 168, 83, 0.2);
+}
+
+.chapter-status .status-text {
+  font-size: 24rpx;
+  color: #d4a853;
+}
+
+.current-status {
+  background: rgba(212, 168, 83, 0.3);
+}
+
+.current-status .status-text {
+  color: #d4a853;
+}
+
+.pending-status {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.pending-status .status-text {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.chapter-arrow {
+  font-size: 36rpx;
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.letter-detail-header {
+  margin-bottom: 32rpx;
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.1);
+}
+
+.letter-detail-date {
+  font-size: 28rpx;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.fab-icon.icon-write::after {
+  content: '';
+  position: absolute;
+  width: 4rpx;
+  height: 32rpx;
+  background: #ffffff;
+  top: 16rpx;
+  left: 26rpx;
+  transform: rotate(-20deg);
+}
+
+.fab-text {
+  font-size: 24rpx;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20rpx);
+  display: flex;
+  align-items: flex-end;
+  z-index: 100;
+}
+
+.modal-content {
+  width: 100%;
+  max-height: 85vh;
+  overflow: hidden;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 48rpx;
+  padding-bottom: 80rpx;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40rpx;
+}
+
+.modal-title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.modal-close {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.close-icon {
+  width: 36rpx;
+  height: 36rpx;
+  position: relative;
+}
+
+.close-icon::before,
+.close-icon::after {
+  content: '';
+  position: absolute;
+  width: 44rpx;
+  height: 4rpx;
+  background: rgba(255, 255, 255, 0.6);
+  top: 16rpx;
+  left: -4rpx;
+}
+
+.close-icon::before {
+  transform: rotate(45deg);
+}
+
+.close-icon::after {
+  transform: rotate(-45deg);
+}
+
+.modal-body {
+  max-height: 70vh;
+}
+
+.chapter-text {
+  font-size: 34rpx;
+  color: #333333;
+  line-height: 2;
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', serif;
+}
