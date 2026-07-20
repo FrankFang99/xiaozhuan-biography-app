@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAppStore, Message } from '../stores/useAppStore';
 import { aiService, STRUCTURE_CONFIG } from '../services/aiService';
-import { User, Volume2, Mic, Keyboard, RefreshCw, ChevronDown, Bell, X, Settings } from 'lucide-react';
+import { User, Volume2, Mic, Keyboard, RefreshCw, ChevronDown, Bell, X, Settings, MessageSquare } from 'lucide-react';
 
 export function ChatPage() {
   const [inputValue, setInputValue] = useState('');
@@ -27,6 +27,7 @@ export function ChatPage() {
   const letters = useAppStore((state) => state.letters);
   const fontSize = useAppStore((state) => state.fontSize);
   const setFontSize = useAppStore((state) => state.setFontSize);
+  const setCurrentPage = useAppStore((state) => state.setCurrentPage);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
@@ -104,6 +105,38 @@ export function ChatPage() {
     }
   };
 
+  const isFeedbackIntent = (text: string): boolean => {
+    const feedbackTriggers = [
+      ['反馈'], ['意见'], ['建议'], ['投诉'], ['问题'], ['bug'],
+      ['报错'], ['有问题'], ['不满意'], ['改进'], ['优化'],
+      ['功能', '建议'], ['给', '建议'], ['提', '意见'], ['反馈', '问题'],
+      ['报告', '问题'], ['帮助', '中心'], ['联系', '客服'], ['联系', '我们']
+    ];
+
+    for (const trigger of feedbackTriggers) {
+      const allMatch = trigger.every(k => text.includes(k));
+      if (allMatch) return true;
+    }
+
+    return false;
+  };
+
+  const handleFeedbackRequest = () => {
+    setIsTyping(false);
+    const feedbackMessage = {
+      id: Date.now().toString(),
+      sender: 'agent' as const,
+      content: '非常感谢您的反馈！我们非常重视您的意见。\n\n您可以告诉我具体的问题或建议，或者点击下方按钮进入反馈页面，我们会记录完整的对话上下文以便更好地帮助您。',
+      time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    addMessage(feedbackMessage);
+
+    if (window.confirm('感谢您的反馈！我们会认真对待每一条建议。是否进入反馈页面提交详细内容？')) {
+      setCurrentPage('feedback');
+    }
+  };
+
   const handleSend = async () => {
     if (!inputValue.trim() || isTyping) return;
 
@@ -113,6 +146,12 @@ export function ChatPage() {
     setInputValue('');
     setIsTyping(true);
     setStreamContent('');
+
+    const feedbackIntent = isFeedbackIntent(userMessage);
+    if (feedbackIntent) {
+      handleFeedbackRequest();
+      return;
+    }
 
     const tempId = Date.now().toString();
     setStreamMessageId(tempId);

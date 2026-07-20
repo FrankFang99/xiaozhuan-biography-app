@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../stores/useAppStore';
-import { User, Settings, HelpCircle, LogOut, Star, Clock, Heart, MessageSquare, BookMarked } from 'lucide-react';
+import { User, Settings, HelpCircle, LogOut, Star, Clock, Heart, MessageSquare, BookMarked, Send } from 'lucide-react';
 
 export function MyPage() {
   const [showSettings, setShowSettings] = useState(false);
@@ -20,6 +20,10 @@ export function MyPage() {
 
   const handleViewBiography = () => {
     setCurrentPage('biography');
+  };
+
+  const handleFeedback = () => {
+    setCurrentPage('feedback');
   };
 
   return (
@@ -333,9 +337,17 @@ export function MyPage() {
 
       <div className="px-4 py-4">
         <div className="space-y-2">
+          <button 
+            onClick={handleFeedback}
+            className="w-full flex items-center gap-4 py-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
+          >
+            <Send className="w-5 h-5 text-[#D4A853]" />
+            <span className="text-white">用户反馈</span>
+            <span className="ml-auto text-white/30">→</span>
+          </button>
           <button className="w-full flex items-center gap-4 py-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
             <HelpCircle className="w-5 h-5 text-white/50" />
-            <span className="text-white/70">帮助与反馈</span>
+            <span className="text-white/70">帮助中心</span>
           </button>
           <button className="w-full flex items-center gap-4 py-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
             <MessageSquare className="w-5 h-5 text-white/50" />

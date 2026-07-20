@@ -163,7 +163,7 @@
 }
 
 .chapter-item:active {
-  transform: scale(0.98);
+  opacity: 0.8;
 }
 
 .chapter-item.completed {
@@ -330,7 +330,7 @@
 .modal-title {
   font-size: 40rpx;
   font-weight: bold;
-  color: #333333;
+  color: #ffffff;
 }
 
 .modal-close {
@@ -375,7 +375,7 @@
 
 .chapter-text {
   font-size: 34rpx;
-  color: #333333;
+  color: #ffffff;
   line-height: 2;
   font-family: 'Noto Serif SC', 'Microsoft YaHei', serif;
 }

@@ -260,6 +260,166 @@ const Tracker = {
       errorMessage: errorMessage,
       errorType: errorType
     })
+  },
+
+  performance: function(metricName, value, properties) {
+    this.track('performance', {
+      metricName: metricName,
+      value: value,
+      ...properties
+    })
+  },
+
+  pageLoadTime: function(pageName, loadTime) {
+    this.performance('page_load_time', loadTime, { pageName: pageName })
+  },
+
+  apiCall: function(apiName, duration, success, statusCode) {
+    this.track('api_call', {
+      apiName: apiName,
+      duration: duration,
+      success: success,
+      statusCode: statusCode
+    })
+  },
+
+  llmCall: function(model, duration, success, tokens) {
+    this.track('llm_call', {
+      model: model,
+      duration: duration,
+      success: success,
+      tokens: tokens
+    })
+  },
+
+  biographyGenerate: function(success, duration, chapterCount, totalScore) {
+    this.track('biography_generate', {
+      success: success,
+      duration: duration,
+      chapterCount: chapterCount,
+      totalScore: totalScore
+    })
+  },
+
+  biographyEvaluation: function(score, strengths, improvements) {
+    this.track('biography_evaluation', {
+      score: score,
+      strengths: strengths,
+      improvements: improvements
+    })
+  },
+
+  chapterComplete: function(chapterName, questionsAnswered, totalQuestions) {
+    this.track('chapter_complete', {
+      chapterName: chapterName,
+      questionsAnswered: questionsAnswered,
+      totalQuestions: totalQuestions
+    })
+  },
+
+  questionAnswer: function(chapterName, questionIndex, answerLength) {
+    this.track('question_answer', {
+      chapterName: chapterName,
+      questionIndex: questionIndex,
+      answerLength: answerLength
+    })
+  },
+
+  tabSwitch: function(fromTab, toTab) {
+    this.track('tab_switch', {
+      fromTab: fromTab,
+      toTab: toTab
+    })
+  },
+
+  navigation: function(fromPage, toPage) {
+    this.track('navigation', {
+      fromPage: fromPage,
+      toPage: toPage
+    })
+  },
+
+  featureUse: function(featureName, duration) {
+    this.track('feature_use', {
+      featureName: featureName,
+      duration: duration
+    })
+  },
+
+  voiceRecognition: function(success, duration, textLength) {
+    this.track('voice_recognition', {
+      success: success,
+      duration: duration,
+      textLength: textLength
+    })
+  },
+
+  imageUpload: function(success, size, count) {
+    this.track('image_upload', {
+      success: success,
+      size: size,
+      count: count
+    })
+  },
+
+  memoryClear: function() {
+    this.track('memory_clear', {})
+  },
+
+  goalReset: function() {
+    this.track('goal_reset', {})
+  },
+
+  feedbackSubmit: function(type, content) {
+    this.track('feedback_submit', {
+      type: type,
+      contentLength: content ? content.length : 0
+    })
+  },
+
+  appLaunch: function() {
+    this.track('app_launch', {})
+  },
+
+  appShow: function() {
+    this.track('app_show', {})
+  },
+
+  appHide: function() {
+    this.flush()
+    this.track('app_hide', {})
+  },
+
+  systemError: function(error) {
+    try {
+      this.track('system_error', {
+        message: error.message || '',
+        stack: error.stack || '',
+        name: error.name || '',
+        fileName: error.fileName || '',
+        lineNumber: error.lineNumber || '',
+        columnNumber: error.columnNumber || ''
+      })
+    } catch (e) {
+      console.error('[Tracker] Failed to track system error:', e)
+    }
+  },
+
+  networkError: function(url, method, statusCode, error) {
+    this.track('network_error', {
+      url: url,
+      method: method,
+      statusCode: statusCode,
+      error: error ? error.message : ''
+    })
+  },
+
+  storageError: function(operation, key, error) {
+    this.track('storage_error', {
+      operation: operation,
+      key: key,
+      error: error ? error.message : ''
+    })
   }
 }
 

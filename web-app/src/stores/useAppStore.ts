@@ -122,7 +122,7 @@ interface AppState {
   biographyProgress: number;
   chatCount: number;
   wordCount: number;
-  currentPage: 'login' | 'onboarding' | 'letterbox' | 'chat' | 'book' | 'stars' | 'biography' | 'showcase' | 'my';
+  currentPage: 'login' | 'onboarding' | 'letterbox' | 'chat' | 'book' | 'stars' | 'biography' | 'showcase' | 'my' | 'feedback';
   goal: GoalSetting | null;
   currentLetterIndex: number;
   selectedLetterId: string | null;
@@ -137,7 +137,7 @@ interface AppState {
   login: (phone: string) => void;
   logout: () => void;
   setCurrentUser: (user: User | null) => void;
-  setCurrentPage: (page: 'login' | 'onboarding' | 'letterbox' | 'chat' | 'book' | 'stars' | 'biography' | 'showcase' | 'my') => void;
+  setCurrentPage: (page: 'login' | 'onboarding' | 'letterbox' | 'chat' | 'book' | 'stars' | 'biography' | 'showcase' | 'my' | 'feedback') => void;
   setGoal: (goal: GoalSetting) => void;
   addMessage: (message: Omit<Message, 'id' | 'time'>) => void;
   saveLetter: (content: string, chapter: string) => void;

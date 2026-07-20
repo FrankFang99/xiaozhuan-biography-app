@@ -135,6 +135,12 @@
       <text class="menu-arrow">→</text>
     </view>
     
+    <view class="menu-item glass-card" bindtap="onFeedback">
+      <view class="menu-icon icon-feedback"></view>
+      <text class="menu-text text-white">用户反馈</text>
+      <text class="menu-arrow">→</text>
+    </view>
+    
     <view class="menu-item glass-card" bindtap="onClearMemory">
       <view class="menu-icon icon-trash"></view>
       <text class="menu-text text-white">清除记忆</text>

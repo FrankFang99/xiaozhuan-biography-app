@@ -1,0 +1,143 @@
+<view class="page-container">
+  <view class="header">
+    <text class="title">传记评测系统</text>
+    <text class="subtitle">AI作为评审专家，不断优化传记生成质量</text>
+  </view>
+
+  <view class="panel">
+    <view class="panel-header">
+      <text class="panel-title">评测样本</text>
+    </view>
+    <view class="sample-list">
+      <view 
+        wx:for="{{samples}}" 
+        wx:key="id" 
+        class="sample-item {{currentSample === item.id ? 'active' : ''}}"
+        bindtap="onSelectSample"
+        data-id="{{item.id}}"
+      >
+        <text class="sample-name">{{item.name}}</text>
+        <text class="sample-count">{{item.conversations.length}}轮对话</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="panel-header">
+      <text class="panel-title">对话记录</text>
+      <text class="panel-subtitle">一问一答式，按顺序进行</text>
+    </view>
+    <scroll-view class="conversation-scroll" scroll-y>
+      <view wx:for="{{currentConversations}}" wx:key="turn" class="conversation-item">
+        <view class="turn-badge">{{item.turn}}</view>
+        <view class="ai-message">
+          <text class="message-label">AI提问：</text>
+          <text class="message-content">{{item.aiQuestion}}</text>
+        </view>
+        <view class="user-message">
+          <text class="message-label">用户回答：</text>
+          <text class="message-content">{{item.userAnswer}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="action-area">
+    <button class="btn-primary" bindtap="onStartEvaluation" loading="{{isEvaluating}}">
+      开始评测（生成传记 + AI评分）
+    </button>
+    <button class="btn-secondary" bindtap="onStartIterative">
+      迭代优化（最多3轮）
+    </button>
+  </view>
+
+  <view wx:if="{{evaluationResult}}" class="panel">
+    <view class="panel-header">
+      <text class="panel-title">评测结果</text>
+      <view class="score-badge">
+        <text class="score-value">{{evaluationResult.evaluation.totalScore}}</text>
+        <text class="score-unit">/100</text>
+      </view>
+    </view>
+    
+    <view class="score-details">
+      <view wx:for="{{scoreItems}}" wx:key="key" class="score-item">
+        <view class="score-label">
+          <text class="score-name">{{item.name}}</text>
+          <text class="score-num">{{item.score}}</text>
+        </view>
+        <view class="score-bar">
+          <view class="score-fill" style="width: {{item.percent}}%;"></view>
+        </view>
+        <text class="score-comment">{{item.comment}}</text>
+      </view>
+    </view>
+    
+    <view class="evaluation-summary">
+      <text class="summary-label">综合评价</text>
+      <text class="summary-content">{{evaluationResult.evaluation.overallComment}}</text>
+    </view>
+    
+    <view class="evaluation-lists">
+      <view class="list-section">
+        <text class="list-title">优点</text>
+        <view wx:for="{{evaluationResult.evaluation.strengths}}" wx:key="index" class="list-item">
+          <text class="list-dot">●</text>
+          <text class="list-text">{{item}}</text>
+        </view>
+      </view>
+      <view class="list-section">
+        <text class="list-title">改进建议</text>
+        <view wx:for="{{evaluationResult.evaluation.improvements}}" wx:key="index" class="list-item">
+          <text class="list-dot">●</text>
+          <text class="list-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{evaluationResult}}" class="panel">
+    <view class="panel-header">
+      <text class="panel-title">生成的传记</text>
+    </view>
+    <scroll-view class="biography-scroll" scroll-y>
+      <view class="biography-section">
+        <text class="section-label">引言</text>
+        <text class="section-content">{{evaluationResult.generatedBiography.intro}}</text>
+      </view>
+      <view wx:for="{{evaluationResult.generatedBiography.chapters}}" wx:key="title" class="biography-section">
+        <view class="chapter-header">
+          <text class="chapter-title">{{item.title}}</text>
+          <text class="chapter-year">{{item.year}}</text>
+        </view>
+        <text class="chapter-content">{{item.content}}</text>
+        <view class="chapter-footer">
+          <text class="chapter-quote">「{{item.quote}}」</text>
+          <text class="chapter-emotion">{{item.emotion}}</text>
+        </view>
+      </view>
+      <view class="biography-section">
+        <text class="section-label">结语</text>
+        <text class="section-content">{{evaluationResult.generatedBiography.ending}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="panel">
+    <view class="panel-header">
+      <text class="panel-title">评测历史</text>
+    </view>
+    <scroll-view class="history-scroll" scroll-y>
+      <view wx:if="{{history.length === 0}}" class="empty-history">
+        <text class="empty-text">暂无评测记录</text>
+      </view>
+      <view wx:for="{{history}}" wx:key="timestamp" class="history-item">
+        <view class="history-header">
+          <text class="history-score">{{item.evaluation.totalScore}}分</text>
+          <text class="history-time">{{formatTime(item.timestamp)}}</text>
+        </view>
+        <text class="history-comment">{{item.evaluation.overallComment}}</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>

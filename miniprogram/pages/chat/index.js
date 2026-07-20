@@ -1,6 +1,6 @@
 const { callLLM, extractMemory, STRUCTURE_CONFIG } = require('../../utils/llm.js')
 const Tracker = require('../../utils/tracker.js')
-const { generateBiographyFromMemory } = require('../../utils/biographyGenerator.js')
+const { generateBiographyFromMemory, generateBiographyAgent } = require('../../utils/biographyGenerator.js')
 const { TEST_ELDERS } = require('../../data/testElders.js')
 
 Page({
@@ -35,7 +35,9 @@ Page({
     showTestElders: false,
     testElders: [],
     currentTestElder: {},
-    isTestMode: false
+    isTestMode: false,
+    showTutorial: false,
+    hasCompletedTutorial: false
   },
   
   recorderManager: null,
@@ -62,6 +64,8 @@ Page({
       const progressPercent = Math.round((letters.length / targetLetterCount) * 100)
       const daysRemaining = this.calculateDaysRemaining(goal)
       
+      const hasCompletedTutorial = wx.getStorageSync('hasCompletedTutorial') || false
+      
       this.setData({ 
         goal, 
         notifications: notifications.slice(0, 3),
@@ -77,12 +81,16 @@ Page({
         currentStage: currentStage.id,
         stageName: currentStage.name,
         conversationPhase: userMemory.progress.conversationPhase || 'trust_building',
-        showVoiceTutorial: !userMemory.hasSeenVoiceTutorial,
-        showFloatHeader: false
+        showVoiceTutorial: !userMemory.hasSeenVoiceTutorial && !hasCompletedTutorial,
+        showFloatHeader: false,
+        showTutorial: !hasCompletedTutorial,
+        hasCompletedTutorial
       }, () => {
         this.calculateScrollHeight()
         
-        if (messages.length === 0) {
+        if (messages.length === 0 && !hasCompletedTutorial) {
+          this.initConversation()
+        } else if (messages.length === 0) {
           this.initConversation()
         } else {
           setTimeout(() => {
@@ -496,6 +504,81 @@ Page({
     }
   },
 
+  isBiographyIntent: function(text) {
+    const biographyTriggers = [
+      ['传记', '生成'],
+      ['传记', '查看'],
+      ['传记', '写'],
+      ['我的', '故事'],
+      ['人生', '故事'],
+      ['成果'],
+      ['作品'],
+      ['想看', '传记'],
+      ['要', '传记']
+    ]
+    
+    const regenerateTriggers = [
+      ['传记', '重新'],
+      ['传记', '修改'],
+      ['传记', '调整'],
+      ['不满意', '传记'],
+      ['传记', '不满意'],
+      ['太长', '传记'],
+      ['太短', '传记'],
+      ['传记', '太长'],
+      ['传记', '太短'],
+      ['补充', '传记'],
+      ['传记', '补充']
+    ]
+    
+    for (const trigger of biographyTriggers) {
+      const allMatch = trigger.every(k => text.includes(k))
+      if (allMatch) return 'generate'
+    }
+    
+    for (const trigger of regenerateTriggers) {
+      const allMatch = trigger.every(k => text.includes(k))
+      if (allMatch) return 'regenerate'
+    }
+    
+    if (text.includes('传记') && text.length < 15) {
+      return 'generate'
+    }
+    
+    return null
+  },
+
+  isFeedbackIntent: function(text) {
+    const feedbackTriggers = [
+      ['反馈'],
+      ['意见'],
+      ['建议'],
+      ['投诉'],
+      ['问题'],
+      ['bug'],
+      ['报错'],
+      ['有问题'],
+      ['不满意'],
+      ['改进'],
+      ['优化'],
+      ['功能', '建议'],
+      ['给', '建议'],
+      ['提', '意见'],
+      ['反馈', '问题'],
+      ['报告', '问题'],
+      ['帮助', '中心'],
+      ['联系', '客服'],
+      ['联系', '我们']
+    ]
+    
+    for (const trigger of feedbackTriggers) {
+      const allMatch = trigger.every(k => text.includes(k))
+      if (allMatch) return true
+    }
+    
+    return false
+  },
+
   onSend: async function() {
     const { inputText, messages, goal, userMemory } = this.data
     if (!inputText.trim()) return
@@ -517,6 +600,18 @@ Page({
       isLoading: true,
       scrollTop: 999999
     })
+
+    const biographyIntent = this.isBiographyIntent(inputText.trim())
+    if (biographyIntent) {
+      this.handleBiographyRequest(biographyIntent, inputText.trim(), newMessages)
+      return
+    }
+
+    const feedbackIntent = this.isFeedbackIntent(inputText.trim())
+    if (feedbackIntent) {
+      this.handleFeedbackRequest(newMessages)
+      return
+    }
 
     callLLM(newMessages, goal, userMemory, true)
       .then(content => {
@@ -571,6 +666,120 @@ Page({
           scrollTop: 999999
         })
       })
+  },
+
+  handleBiographyRequest: function(intent, userText, messages) {
+    const { goal, userMemory } = this.data
+    
+    wx.showLoading({ title: '正在生成传记...' })
+    
+    const letters = wx.getStorageSync('letters') || []
+    
+    const options = {}
+    if (intent === 'regenerate') {
+      options.feedback = userText
+      console.log('[Biography] Regenerating with feedback:', userText)
+    }
+    
+    generateBiographyAgent(userMemory, goal, letters, options)
+      .then(biography => {
+        wx.hideLoading()
+        
+        wx.setStorageSync('biography', biography)
+        
+        let chaptersText = biography.chapters.map((c, i) => {
+          return `\n${i + 1}. ${c.title}（${c.year}）\n${c.content}\n「${c.quote || ''}」`
+        }).join('\n')
+        
+        let responseText = `好的！我已经为您生成了完整的人生传记：\n\n${biography.intro}\n\n${chaptersText}\n\n${biography.ending}`
+        
+        if (responseText.length > 2000) {
+          responseText = `好的！我已经为您生成了完整的人生传记，包含${biography.chapters.length}个章节。\n\n${biography.intro}\n\n📖 章节列表：\n${biography.chapters.map((c, i) => `${i + 1}. ${c.title}（${c.year}）`).join('\n')}\n\n${biography.ending}\n\n👉 点击底部"我的"可以查看完整传记内容，或者您可以告诉我想要修改哪里。`
+        }
+        
+        const aiMessage = {
+          id: 'ai_' + Date.now(),
+          role: 'ai',
+          content: responseText,
+          time: this.formatTime(new Date()),
+          timestamp: new Date().toISOString(),
+          type: 'biography'
+        }
+        
+        const updatedMessages = [...messages, aiMessage]
+        this.setData({ 
+          messages: updatedMessages,
+          isLoading: false,
+          scrollTop: 999999
+        })
+        wx.setStorageSync('currentChatMessages', updatedMessages)
+        
+        wx.showModal({
+          title: '传记生成完成',
+          content: '您的人生传记已生成！可以点击"我的"查看完整内容，或者告诉我您的修改意见。',
+          confirmText: '去查看',
+          cancelText: '继续修改',
+          success: (res) => {
+            if (res.confirm) {
+              wx.switchTab({ url: '/pages/profile/index' })
+            }
+          }
+        })
+      })
+      .catch(err => {
+        wx.hideLoading()
+        console.error('[Biography] Generation error:', err)
+        
+        this.setData({ isLoading: false })
+        
+        wx.showToast({ title: '传记生成失败，请重试', icon: 'none' })
+        
+        const fallbackMessage = {
+          id: 'ai_' + Date.now(),
+          role: 'ai',
+          content: '抱歉，传记生成遇到了一些问题。请稍后再试，或者您可以告诉我具体想要什么样的传记内容。',
+          time: this.formatTime(new Date()),
+          timestamp: new Date().toISOString()
+        }
+        
+        this.setData({ 
+          messages: [...messages, fallbackMessage],
+          scrollTop: 999999
+        })
+        wx.setStorageSync('currentChatMessages', [...messages, fallbackMessage])
+      })
+  },
+
+  handleFeedbackRequest: function(messages) {
+    this.setData({ isLoading: false })
+    
+    const aiMessage = {
+      id: 'ai_' + Date.now(),
+      role: 'ai',
+      content: '非常感谢您的反馈！我们非常重视您的意见。\n\n您可以告诉我具体的问题或建议，或者点击下方按钮进入反馈页面，我们会记录完整的对话上下文以便更好地帮助您。',
+      time: this.formatTime(new Date()),
+      timestamp: new Date().toISOString(),
+      type: 'feedback'
+    }
+    
+    const updatedMessages = [...messages, aiMessage]
+    this.setData({ 
+      messages: updatedMessages,
+      scrollTop: 999999
+    })
+    wx.setStorageSync('currentChatMessages', updatedMessages)
+    
+    wx.showModal({
+      title: '用户反馈',
+      content: '感谢您的反馈！我们会认真对待每一条建议。是否进入反馈页面提交详细内容？',
+      confirmText: '去反馈',
+      cancelText: '继续聊天',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({ url: '/pages/feedback/index' })
+        }
+      }
+    })
   },
 
   extractMemory: function(messages) {
@@ -692,6 +901,15 @@ Page({
     const letters = wx.getStorageSync('letters') || []
     letters.unshift(letter)
     wx.setStorageSync('letters', letters)
+    
+    const backupMessages = wx.getStorageSync('chatMessagesBackup') || []
+    backupMessages.push({
+      stage: stageName,
+      timestamp: now.toISOString(),
+      messages: [...messages]
+    })
+    wx.setStorageSync('chatMessagesBackup', backupMessages)
+    
     wx.removeStorageSync('currentChatMessages')
 
     const userMemory = this.data.userMemory
@@ -722,7 +940,7 @@ Page({
 
     this.addNotification('新信件', `您的新信件"${stageName}"已保存到信夹`)
 
-    wx.showToast({ title: '信件已保存', icon: 'success' })
+    this.showChapterCompleteToast(stageName)
 
     this.checkBiographyComplete()
   },
@@ -742,7 +960,7 @@ Page({
       
       wx.showLoading({ title: '正在生成传记...' })
       
-      generateBiographyFromMemory(userMemory, goal)
+      generateBiographyAgent(userMemory, goal, letters)
         .then(biography => {
           wx.hideLoading()
           
@@ -750,12 +968,14 @@ Page({
           this.addNotification('传记完成', `${goal.name || '用户'}的传记已完成！`)
           
           wx.showModal({
-            title: '传记完成',
-            content: `${goal.name || '用户'}的传记已经完成，快去传记宇宙查看吧！`,
+            title: '🎊 传记完成',
+            content: `恭喜您！${goal.name || '用户'}的人生传记已经完成。\n\n这是一部根据您的真实记忆和对话精心撰写的完整传记，包含多个章节、金句、时间线和家人视角。\n\n快去查看您的人生故事吧！`,
             showCancel: false,
             confirmText: '去查看',
             success: () => {
-              wx.navigateTo({ url: '/pages/biography/index?id=user_biography' })
+              wx.switchTab({ 
+                url: '/pages/profile/index' 
+              })
             }
           })
         })
@@ -763,21 +983,40 @@ Page({
           wx.hideLoading()
           console.error('Biography generation error:', err)
           
-          const fallbackBiography = {
-            id: 'bio_' + Date.now(),
-            userId: wx.getStorageSync('userInfo').id || '',
-            goalId: goal.id || '',
-            title: `${goal.name || '用户'}的传记`,
-            content: this.generateBiography(letters),
-            status: 'completed',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-          
-          wx.setStorageSync('biography', fallbackBiography)
-          this.addNotification('传记完成', `${goal.name || '用户'}的传记已完成！`)
-          
-          wx.showToast({ title: '传记已完成', icon: 'success' })
+          generateBiographyFromMemory(userMemory, goal)
+            .then(biography => {
+              wx.setStorageSync('biography', biography)
+              this.addNotification('传记完成', `${goal.name || '用户'}的传记已完成！`)
+              
+              wx.showModal({
+                title: '🎊 传记完成',
+                content: `${goal.name || '用户'}的人生传记已经完成，快去传记宇宙查看吧！`,
+                showCancel: false,
+                confirmText: '去查看',
+                success: () => {
+                  wx.switchTab({ 
+                    url: '/pages/profile/index' 
+                  })
+                }
+              })
+            })
+            .catch(fallbackErr => {
+              const fallbackBiography = {
+                id: 'bio_' + Date.now(),
+                userId: wx.getStorageSync('userInfo').id || '',
+                goalId: goal.id || '',
+                title: `${goal.name || '用户'}的传记`,
+                content: this.generateBiography(letters),
+                status: 'completed',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }
+              
+              wx.setStorageSync('biography', fallbackBiography)
+              this.addNotification('传记完成', `${goal.name || '用户'}的传记已完成！`)
+              
+              wx.showToast({ title: '传记已完成', icon: 'success' })
+            })
         })
     }
   },
@@ -956,30 +1195,50 @@ ${elder.keyMemories.map((m, i) => `${i + 1}. ${m}`).join('\n')}
 
     callLLM([{ role: 'user', content: prompt }], null, null, false)
       .then(content => {
-        const elderMessage = {
-          id: 'user_' + Date.now(),
-          role: 'user',
-          content: content,
-          time: this.formatTime(new Date()),
-          timestamp: new Date().toISOString()
-        }
-
-        const updatedMessages = [...messages, elderMessage]
-        this.setData({
-          messages: updatedMessages,
-          scrollTop: 999999
-        })
-        wx.setStorageSync('currentChatMessages', updatedMessages)
-
-        this.extractMemory(updatedMessages)
-
-        setTimeout(() => {
-          this.callLLMForNextQuestion(updatedMessages)
-        }, 1500)
+        this.addElderMessage(messages, content)
       })
       .catch(err => {
         console.error('Elder response generation error:', err)
+        const fallbackContent = this.getFallbackResponse(elder, aiContent)
+        this.addElderMessage(messages, fallbackContent)
       })
+  },
+
+  getFallbackResponse: function(elder, aiContent) {
+    const chapters = elder.chapters || {}
+    const currentStage = this.data.currentStage
+    const chapter = chapters[currentStage]
+    
+    if (chapter && chapter.content) {
+      const paragraphs = chapter.content.split('\n\n')
+      const randomIndex = Math.floor(Math.random() * paragraphs.length)
+      return paragraphs[randomIndex] || chapter.content.substring(0, 200) + '...'
+    }
+    
+    return `我是${elder.name}，今年${elder.age}岁，曾经是一位${elder.background}。我经历了很多事情，有机会慢慢跟你讲。`
+  },
+
+  addElderMessage: function(messages, content) {
+    const elderMessage = {
+      id: 'user_' + Date.now(),
+      role: 'user',
+      content: content,
+      time: this.formatTime(new Date()),
+      timestamp: new Date().toISOString()
+    }
+
+    const updatedMessages = [...messages, elderMessage]
+    this.setData({
+      messages: updatedMessages,
+      scrollTop: 999999
+    })
+    wx.setStorageSync('currentChatMessages', updatedMessages)
+
+    this.extractMemory(updatedMessages)
+
+    setTimeout(() => {
+      this.callLLMForNextQuestion(updatedMessages)
+    }, 1500)
   },
 
   callLLMForNextQuestion: function(messages) {
@@ -1003,14 +1262,81 @@ ${elder.keyMemories.map((m, i) => `${i + 1}. ${m}`).join('\n')}
         this.extractMemory(updatedMessages)
 
         if (this.data.isTestMode && this.data.currentTestElder) {
-          setTimeout(() => {
-            this.generateElderResponse(updatedMessages)
-          }, 2000)
+          const stageMessageCount = updatedMessages.filter(m => m.role === 'ai').length
+          
+          if (stageMessageCount >= 5 || this.isStageComplete()) {
+            setTimeout(() => {
+              this.saveLetter(updatedMessages)
+              setTimeout(() => {
+                this.continueNextStage()
+              }, 1500)
+            }, 1000)
+          } else {
+            setTimeout(() => {
+              this.generateElderResponse(updatedMessages)
+            }, 2000)
+          }
         }
       })
       .catch(err => {
         console.error('LLM call error:', err)
       })
+  },
+
+  isStageComplete: function() {
+    const userMemory = this.data.userMemory
+    const currentStage = userMemory.progress.currentPhase
+    const keyMemories = userMemory.keyMemories || []
+    const stageMemories = keyMemories.filter(m => 
+      (m.chapter && m.chapter.includes(currentStage)) ||
+      (typeof m === 'string' && m.length > 0)
+    )
+    return stageMemories.length >= 3
+  },
+
+  continueNextStage: function() {
+    const elder = this.data.currentTestElder
+    if (!elder) return
+
+    const userMemory = this.data.userMemory
+    const stages = this.getStages(this.data.goal)
+    const currentStageIndex = stages.findIndex(s => s.id === userMemory.progress.currentPhase)
+    
+    if (currentStageIndex >= stages.length - 1) {
+      wx.showToast({ title: '所有章节已完成', icon: 'success' })
+      this.checkBiographyComplete()
+      return
+    }
+
+    const nextStage = stages[currentStageIndex + 1]
+    
+    this.setData({
+      currentStage: nextStage.id,
+      stageName: nextStage.name,
+      messages: []
+    })
+    wx.setStorageSync('currentChatMessages', [])
+
+    setTimeout(() => {
+      const greeting = `好的，我们已经聊完了${stages[currentStageIndex].name}。接下来我们聊聊${nextStage.name}吧，你可以跟我讲讲这方面的故事。`
+      
+      const aiMessage = {
+        id: 'ai_' + Date.now(),
+        role: 'ai',
+        content: greeting,
+        time: this.formatTime(new Date()),
+        timestamp: new Date().toISOString()
+      }
+      
+      this.setData({ messages: [aiMessage] }, () => {
+        setTimeout(() => {
+          this.scrollToBottom()
+          setTimeout(() => {
+            this.generateElderResponse([aiMessage])
+          }, 2000)
+        }, 100)
+      })
+    }, 500)
   },
 
   onShowTestElders: function() {
@@ -1045,7 +1371,7 @@ ${elder.keyMemories.map((m, i) => `${i + 1}. ${m}`).join('\n')}
       progress: {
         totalQuestions: 24,
         answeredQuestions: [],
-        currentPhase: 'life',
+        currentPhase: 'childhood',
         daysRemaining: 30,
         conversationPhase: 'trust_building',
         exchangesInCurrentPhase: 0
@@ -1063,25 +1389,11 @@ ${elder.keyMemories.map((m, i) => `${i + 1}. ${m}`).join('\n')}
       avatarUrl: ''
     }
 
-    const chapters = elder.chapters || {}
-    const letters = Object.keys(chapters).map(chapterId => {
-      const chapter = chapters[chapterId]
-      return {
-        id: 'letter_' + chapterId,
-        chapterId: chapterId,
-        title: chapter.title,
-        content: chapter.content,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    })
-
-    const biography = elder.biography || null
-
     wx.setStorageSync('userMemory', userMemory)
     wx.setStorageSync('userInfo', userInfo)
-    wx.setStorageSync('letters', letters)
-    wx.setStorageSync('biography', biography)
+    wx.setStorageSync('letters', [])
+    wx.setStorageSync('biography', null)
+    wx.setStorageSync('currentChatMessages', [])
 
     this.setData({
       showTestElders: false,
@@ -1090,7 +1402,9 @@ ${elder.keyMemories.map((m, i) => `${i + 1}. ${m}`).join('\n')}
       userMemory: userMemory,
       userNickName: elder.name,
       userAvatar: '',
-      conversationPhase: 'trust_building'
+      conversationPhase: 'trust_building',
+      currentStage: 'childhood',
+      stageName: '童年记忆'
     }, () => {
       const greeting = `您好！我是${elder.name}的专属聊天伙伴。我了解到您曾经是一位${elder.background}，经历了很多故事。今天先从您的童年开始聊起好吗？`
       
@@ -1105,6 +1419,9 @@ ${elder.keyMemories.map((m, i) => `${i + 1}. ${m}`).join('\n')}
       this.setData({ messages: [aiMessage] }, () => {
         setTimeout(() => {
           this.scrollToBottom()
+          setTimeout(() => {
+            this.generateElderResponse([aiMessage])
+          }, 2000)
         }, 100)
       })
     })
@@ -1119,5 +1436,50 @@ ${elder.keyMemories.map((m, i) => `${i + 1}. ${m}`).join('\n')}
       clearInterval(this.recordingTimer)
       this.recordingTimer = null
     }
+  },
+
+  onTutorialComplete: function() {
+    wx.setStorageSync('hasCompletedTutorial', true)
+    this.setData({ 
+      showTutorial: false, 
+      hasCompletedTutorial: true 
+    })
+    wx.showToast({
+      title: '教程完成',
+      icon: 'success'
+    })
+  },
+
+  onTutorialSkip: function() {
+    wx.setStorageSync('hasCompletedTutorial', true)
+    this.setData({ 
+      showTutorial: false, 
+      hasCompletedTutorial: true 
+    })
+  },
+
+  showChapterCompleteToast: function(chapterName) {
+    wx.showModal({
+      title: '章节完成',
+      content: `恭喜您完成了「${chapterName}」章节！\n\n您的故事已经保存到信夹中，可以随时查看。`,
+      confirmText: '去信夹看看',
+      cancelText: '继续聊天',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({
+            url: '/pages/letterbox/index'
+          })
+        }
+      }
+    })
+  },
+
+  showAllChaptersCompleteToast: function() {
+    wx.showModal({
+      title: '所有章节完成',
+      content: '太棒了！您已经完成了所有章节的故事收集。\n\n我们正在为您生成完整的人生传记，请稍等片刻...',
+      showCancel: false,
+      confirmText: '知道了'
+    })
   }
 })

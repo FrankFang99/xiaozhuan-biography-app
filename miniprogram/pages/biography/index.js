@@ -375,7 +375,14 @@ Page({
       }
     }
     
-    if (options && options.id) {
+    if (options && options.mode === 'user') {
+      const biography = this.data.biographies.find(b => b.id === 'user_biography')
+      if (biography) {
+        this.setData({ currentBiography: biography, viewMode: 'cover' })
+      } else {
+        wx.showToast({ title: '您还没有生成传记', icon: 'none' })
+      }
+    } else if (options && options.id) {
       const biography = this.data.biographies.find(b => b.id === options.id)
       if (biography) {
         this.setData({ currentBiography: biography, viewMode: 'cover' })

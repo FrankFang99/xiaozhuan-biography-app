@@ -6,6 +6,7 @@ import { ChatPage } from './pages/ChatPage';
 import { BiographyPage } from './pages/BiographyPage';
 import { ShowcasePage } from './pages/ShowcasePage';
 import { MyPage } from './pages/MyPage';
+import { FeedbackPage } from './pages/FeedbackPage';
 import { TabBar } from './components/TabBar';
 
 export default function App() {
@@ -27,6 +28,10 @@ export default function App() {
 
   if (currentPage === 'biography') {
     return <BiographyPage />;
+  }
+
+  if (currentPage === 'feedback') {
+    return <FeedbackPage />;
   }
 
   const handleTabChange = (tab: string) => {

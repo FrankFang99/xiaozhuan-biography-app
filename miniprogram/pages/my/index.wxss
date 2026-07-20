@@ -242,6 +242,29 @@
   border-radius: 4rpx;
 }
 
+.icon-feedback::before {
+  content: '';
+  position: absolute;
+  width: 48rpx;
+  height: 40rpx;
+  border: 4rpx solid #d4a853;
+  border-radius: 8rpx;
+  top: 4rpx;
+  left: 0;
+}
+
+.icon-feedback::after {
+  content: '';
+  position: absolute;
+  width: 12rpx;
+  height: 12rpx;
+  background: #d4a853;
+  border-radius: 50%;
+  top: 12rpx;
+  left: 10rpx;
+  box-shadow: 24rpx 0 0 #d4a853, 12rpx 16rpx 0 #d4a853;
+}
+
 .icon-trash::before {
   content: '';
   position: absolute;

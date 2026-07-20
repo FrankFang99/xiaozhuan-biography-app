@@ -1,0 +1,72 @@
+<view class="page-container">
+  <view class="header">
+    <view class="header-left" bindtap="onCancel">
+      <text class="back-btn">←</text>
+    </view>
+    <text class="header-title text-white font-bold">用户反馈</text>
+    <view class="header-right"></view>
+  </view>
+
+  <scroll-view class="content-scroll" scroll-y>
+    <view class="feedback-section">
+      <text class="section-title text-white font-bold">反馈类型</text>
+      <view class="type-grid">
+        <view 
+          wx:for="{{feedbackTypes}}" 
+          wx:key="value" 
+          class="type-item glass-card {{feedbackType === item.value ? 'active' : ''}}"
+          bindtap="onTypeChange"
+          data-value="{{item.value}}"
+        >
+          <text class="type-icon">{{item.icon}}</text>
+          <text class="type-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="feedback-section">
+      <text class="section-title text-white font-bold">反馈内容</text>
+      <textarea 
+        class="feedback-textarea glass-card"
+        placeholder="请详细描述您的反馈..."
+        value="{{feedbackContent}}"
+        bindinput="onContentInput"
+        maxlength="2000"
+        auto-height
+      />
+    </view>
+
+    <view class="feedback-section">
+      <text class="section-title text-white font-bold">联系方式（选填）</text>
+      <input 
+        class="contact-input glass-card"
+        placeholder="您的微信/手机号，方便我们联系您"
+        value="{{contactInfo}}"
+        bindinput="onContactInput"
+      />
+    </view>
+
+    <view class="feedback-section">
+      <view class="context-toggle" bindtap="onIncludeContextToggle">
+        <view class="toggle-info">
+          <text class="toggle-title text-white">包含对话上下文</text>
+          <text class="toggle-desc text-ghost-muted">帮助我们更好地理解问题</text>
+        </view>
+        <view class="toggle-switch {{includeContext ? 'on' : ''}}">
+          <view class="toggle-thumb"></view>
+        </view>
+      </view>
+
+      <view wx:if="{{includeContext && contextPreview}}" class="context-preview glass-card">
+        <text class="context-label text-ghost-muted">最近5条对话：</text>
+        <text class="context-content text-white">{{contextPreview}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="footer">
+    <button class="submit-btn" bindtap="onSubmit" loading="{{isLoading}}">
+      <text class="btn-text">{{isLoading ? '提交中...' : '提交反馈'}}</text>
+    </button>
+  </view>
+</view>

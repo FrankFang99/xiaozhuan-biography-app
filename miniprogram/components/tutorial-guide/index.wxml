@@ -1,0 +1,33 @@
+<view wx:if="{{show}}" class="tutorial-overlay" bindtap="onNext">
+  <view class="tutorial-mask"></view>
+  
+  <view 
+    wx:if="{{highlightRect.width > 0}}"
+    class="highlight-area"
+    style="top: {{highlightRect.top}}px; left: {{highlightRect.left}}px; width: {{highlightRect.width}}px; height: {{highlightRect.height}}px;"
+    bindtap="onTargetTap"
+  ></view>
+  
+  <view 
+    class="tutorial-tip"
+    style="top: {{arrowPosition.top}}; left: {{arrowPosition.left}}; {{currentStepInfo.transformStyle}}"
+  >
+    <view wx:if="{{currentStepInfo.showArrow}}" class="tip-arrow arrow-up"></view>
+    <view class="tip-content">
+      <text class="tip-title">{{currentStepInfo.title}}</text>
+      <text class="tip-desc">{{currentStepInfo.desc}}</text>
+    </view>
+  </view>
+  
+  <view class="tutorial-controls">
+    <text class="skip-btn" bindtap="onSkip">跳过教程</text>
+    <view class="progress-dots">
+      <view 
+        wx:for="{{steps}}" 
+        wx:key="index" 
+        class="dot {{index === currentStep ? 'active' : ''}}"
+      ></view>
+    </view>
+    <text class="next-btn" bindtap="onNext">{{currentStep >= steps.length - 1 ? '开始聊天' : '下一步'}}</text>
+  </view>
+</view>

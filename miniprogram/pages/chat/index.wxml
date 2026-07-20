@@ -237,4 +237,11 @@
       </view>
     </view>
   </view>
+
+  <tutorial-guide 
+    wx:if="{{showTutorial}}" 
+    show="{{showTutorial}}" 
+    bind:complete="onTutorialComplete" 
+    bind:skip="onTutorialSkip" 
+  />
 </view>

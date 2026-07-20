@@ -132,8 +132,7 @@ Page({
   },
 
   onViewBiography: function() {
-    wx.setStorageSync('viewBiography', true)
-    wx.switchTab({ url: '/pages/letterbox/index' })
+    wx.navigateTo({ url: '/pages/biography/index?mode=user' })
   },
 
   onShowcase: function() {
@@ -157,6 +156,10 @@ Page({
         }
       }
     })
+  },
+
+  onFeedback: function() {
+    wx.navigateTo({ url: '/pages/feedback/index' })
   },
 
   onLogout: function() {

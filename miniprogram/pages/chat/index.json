@@ -3,5 +3,7 @@
   "navigationBarBackgroundColor": "#030512",
   "navigationBarTextStyle": "white",
   "backgroundColor": "#030512",
-  "usingComponents": {}
+  "usingComponents": {
+    "tutorial-guide": "../../components/tutorial-guide/index"
+  }
 }

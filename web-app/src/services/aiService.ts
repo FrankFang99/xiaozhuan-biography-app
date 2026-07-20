@@ -166,7 +166,7 @@ const MODEL_CONFIG = {
   minimax: {
     name: 'Minimax abab6',
     baseUrl: 'https://api.minimaxi.com/v1',
-    token: 'sk-cp-Y0zSTfvYIXmHmohQzg58dPrtnUOORLpkh2XG4NbWEehE9ChnjMQ4mN1gGA9YrIRkoaZHYd527kSPPf8NYeT_vzIDTICnFX292aY4ycmlPvEFUTZurzosEoI',
+    token: '<MINIMAX_TOKEN>',
     model: 'abab6-chat',
     maxTokens: 800,
     temperature: 0.8,
@@ -175,7 +175,7 @@ const MODEL_CONFIG = {
   minimax_m3: {
     name: 'Minimax M3',
     baseUrl: 'https://api.minimaxi.com/v1',
-    token: 'sk-cp-Y0zSTfvYIXmHmohQzg58dPrtnUOORLpkh2XG4NbWEehE9ChnjMQ4mN1gGA9YrIRkoaZHYd527kSPPf8NYeT_vzIDTICnFX292aY4ycmlPvEFUTZurzosEoI',
+    token: '<MINIMAX_TOKEN>',
     model: 'm3-chat',
     maxTokens: 800,
     temperature: 0.7,
@@ -184,7 +184,7 @@ const MODEL_CONFIG = {
   deepseek: {
     name: 'DeepSeek',
     baseUrl: 'https://api.deepseek.com/v1',
-    token: 'sk-7e943d5495704d7fb6a62a6763da5475',
+    token: '<DEEPSEEK_TOKEN>',
     model: 'deepseek-chat',
     maxTokens: 800,
     temperature: 0.7,
