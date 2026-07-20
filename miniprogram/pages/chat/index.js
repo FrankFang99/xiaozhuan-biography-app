@@ -1045,7 +1045,7 @@ ${elder.keyMemories.map((m, i) => `${i + 1}. ${m}`).join('\n')}
       progress: {
         totalQuestions: 24,
         answeredQuestions: [],
-        currentPhase: 'childhood',
+        currentPhase: 'life',
         daysRemaining: 30,
         conversationPhase: 'trust_building',
         exchangesInCurrentPhase: 0
@@ -1063,8 +1063,25 @@ ${elder.keyMemories.map((m, i) => `${i + 1}. ${m}`).join('\n')}
       avatarUrl: ''
     }
 
+    const chapters = elder.chapters || {}
+    const letters = Object.keys(chapters).map(chapterId => {
+      const chapter = chapters[chapterId]
+      return {
+        id: 'letter_' + chapterId,
+        chapterId: chapterId,
+        title: chapter.title,
+        content: chapter.content,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    })
+
+    const biography = elder.biography || null
+
     wx.setStorageSync('userMemory', userMemory)
     wx.setStorageSync('userInfo', userInfo)
+    wx.setStorageSync('letters', letters)
+    wx.setStorageSync('biography', biography)
 
     this.setData({
       showTestElders: false,
