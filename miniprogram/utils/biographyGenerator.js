@@ -6,7 +6,6 @@ function generateBiographyFromMemory(memory, goal) {
     const keyMemories = memory.keyMemories || []
     const history = memory.history || {}
     const progress = memory.progress || {}
-
     const basicInfoStr = `
 姓名：${goal?.name || '用户'}
 出生地：${basicInfo.birthPlace || '未记录'}
@@ -62,7 +61,7 @@ ${memoriesStr}
 1. intro（引言）：不少于800字，概括人物的一生，引出传记主题，奠定全文基调，要有感染力
 2. ending（结语）：不少于1500字，总结人生感悟，传递温暖的力量，升华主题，要有深度
 3. timeline（时间线）：25-30个关键时间节点，包含年份和事件，涵盖人生各个阶段
-4. photos（照片位）：20个照片位，包含标题和描述，具有画面感
+4. photos（照片位）：20个照片位，包含标题和描述，根据章节内容推断合适的照片场景
 5. chapters（章节）：15-20章，每章包含：
    - title：章节标题，要有文学性和概括性
    - year：时间范围，准确清晰
@@ -113,7 +112,7 @@ ${memoriesStr}
     ...
   ],
   "photos": [
-    {"title": "照片标题", "desc": "照片描述", "position": "chapter-1"},
+    {"title": "照片标题", "desc": "照片描述，包含照片中的场景、人物和故事背景", "position": "chapter-1", "time": "建议放置时间"},
     ...
   ],
   "chapters": [
@@ -122,7 +121,8 @@ ${memoriesStr}
       "year": "时间范围",
       "content": "正文内容（不少于2000字）",
       "quote": "金句（25-40字）",
-      "emotion": "情感标签"
+      "emotion": "情感标签",
+      "imagePosition": "建议放置图片的位置描述"
     },
     ...
   ],
@@ -137,13 +137,14 @@ ${memoriesStr}
 2. 章节内容要生动具体，基于用户提供的细节进行描写，要有故事性
 3. 金句要简洁有力，富有哲理和感染力，让人印象深刻
 4. 情感标签要准确反映章节的情感基调
-5. 照片描述要与章节内容相关，具有画面感和故事性
-6. 家人视角要温暖感人，从亲人的角度展现人物的另一面
-7. 全文要有统一的叙事风格和基调，保持连贯性
-8. 结尾要有升华，点明人生主题和感悟，引人深思
-9. 后记可以记录创作过程或家人的读后感受，增加真实感
-10. 确保全书总字数不少于30000字，内容充实丰富
-11. 最重要的是：确保所有内容都是真实的，基于用户的真实讲述`
+5. 照片描述要与章节内容相关，具有画面感和故事性，描述照片中的场景和人物
+6. 将用户上传的照片优先分配到合适的章节位置
+7. 家人视角要温暖感人，从亲人的角度展现人物的另一面
+8. 全文要有统一的叙事风格和基调，保持连贯性
+9. 结尾要有升华，点明人生主题和感悟，引人深思
+10. 后记可以记录创作过程或家人的读后感受，增加真实感
+11. 确保全书总字数不少于30000字，内容充实丰富
+12. 最重要的是：确保所有内容都是真实的，基于用户的真实讲述`
 
     callLLMDirect([{ role: 'system', content: systemPrompt }], goal, memory, 'minimax_biography')
       .then(content => {
@@ -318,6 +319,8 @@ ${feedback ? `【用户反馈/修改意见】：${feedback}` : ''}
   })
 }
 
+
+
 async function generateBiographyAgent(memory, goal, letters, options = {}) {
   try {
     const basicInfo = memory.basicInfo || {}
@@ -348,7 +351,7 @@ async function generateBiographyAgent(memory, goal, letters, options = {}) {
       
       if (stageMemories.length > 0) {
         const chapter = await generateNarrativeChapter(
-          stageMemories, 
+          stageMemories,
           stage.name, 
           stage.year,
           'warm',
@@ -411,6 +414,13 @@ async function generateBiographyAgent(memory, goal, letters, options = {}) {
       content: `${goal?.name || '他/她'}是一位慈祥的长辈，用爱和关怀守护着整个家庭。在家人眼中，${goal?.name || '他/她'}是坚强的支柱，是温暖的港湾。${goal?.name || '他/她'}的故事，将永远铭刻在我们心中。`
     }))
 
+    const biographyPhotos = chapters.map((c, i) => ({
+      title: c.title,
+      desc: `${c.year}年的记忆`,
+      position: `chapter-${i + 1}`,
+      time: c.year
+    }))
+
     const biography = {
       id: 'user_biography',
       name: goal?.name || '用户',
@@ -423,11 +433,7 @@ async function generateBiographyAgent(memory, goal, letters, options = {}) {
       intro: intro,
       ending: ending,
       timeline: timeline,
-      photos: chapters.map((c, i) => ({
-        title: c.title,
-        desc: `${c.year}年的记忆`,
-        position: `chapter-${i + 1}`
-      })),
+      photos: biographyPhotos,
       chapters: chapters,
       familyView: familyView,
       lastGeneratedAt: new Date().toISOString(),

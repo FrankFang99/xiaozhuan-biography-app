@@ -6,6 +6,7 @@ export interface Message {
   sender: 'agent' | 'user';
   content: string;
   time: string;
+  type?: 'text' | 'image';
 }
 
 export interface Letter {

@@ -66,38 +66,38 @@ Page({
       
       const hasCompletedTutorial = wx.getStorageSync('hasCompletedTutorial') || false
       
-      this.setData({ 
-        goal, 
-        notifications: notifications.slice(0, 3),
-        hasNotification: notifications.length > 0,
-        messages,
-        userMemory,
-        currentLetterCount: letters.length,
-        targetLetterCount,
-        progressPercent,
-        daysRemaining,
-        userAvatar: userInfo.avatarUrl || '',
-        userNickName: userInfo.nickName || '',
-        currentStage: currentStage.id,
-        stageName: currentStage.name,
-        conversationPhase: userMemory.progress.conversationPhase || 'trust_building',
-        showVoiceTutorial: !userMemory.hasSeenVoiceTutorial && !hasCompletedTutorial,
-        showFloatHeader: false,
-        showTutorial: !hasCompletedTutorial,
-        hasCompletedTutorial
-      }, () => {
-        this.calculateScrollHeight()
-        
-        if (messages.length === 0 && !hasCompletedTutorial) {
-          this.initConversation()
-        } else if (messages.length === 0) {
-          this.initConversation()
-        } else {
-          setTimeout(() => {
-            this.scrollToBottom()
-          }, 100)
-        }
-      })
+      const conversationPhase = userMemory.progress.conversationPhase || 'trust_building'
+    const showVoiceTutorial = !userMemory.hasSeenVoiceTutorial && !hasCompletedTutorial
+    
+    this.setData({ 
+      goal, 
+      notifications: notifications.slice(0, 3),
+      hasNotification: notifications.length > 0,
+      messages,
+      currentLetterCount: letters.length,
+      targetLetterCount,
+      progressPercent,
+      daysRemaining,
+      userAvatar: userInfo.avatarUrl || '',
+      userNickName: userInfo.nickName || '',
+      currentStage: currentStage.id,
+      stageName: currentStage.name,
+      conversationPhase,
+      showVoiceTutorial,
+      showFloatHeader: false,
+      showTutorial: !hasCompletedTutorial,
+      hasCompletedTutorial
+    }, () => {
+      this.calculateScrollHeight()
+      
+      if (messages.length === 0) {
+        this.initConversation()
+      } else {
+        setTimeout(() => {
+          this.scrollToBottom()
+        }, 50)
+      }
+    })
     
     this.initRecorder()
     this.getSuggestedQuestions()
@@ -147,8 +147,10 @@ Page({
         console.error('Speech recognition error:', err)
         wx.showToast({ title: '语音识别失败，请重试', icon: 'none' })
       }
+      
+      console.log('微信同声传译插件初始化成功')
     } catch (e) {
-      console.warn('微信同声传译插件未授权，语音功能暂时不可用:', e)
+      this.speechManager = null
     }
     
     this.recorderManager.onStart(() => {
@@ -279,35 +281,64 @@ Page({
     wx.showLoading({ title: '识别中...' })
     
     const fileExtension = res.tempFilePath.split('.').pop()
-    const cloudPath = `voice/${Date.now()}.${fileExtension}`
     
-    wx.cloud.uploadFile({
-      cloudPath: cloudPath,
-      filePath: res.tempFilePath,
-      success: (uploadRes) => {
-        wx.cloud.callFunction({
-          name: 'speechToText',
-          data: {
-            fileID: uploadRes.fileID
-          },
-          success: (callRes) => {
-            wx.hideLoading()
-            if (callRes.result && callRes.result.success && callRes.result.text) {
-              this.setData({ inputText: callRes.result.text })
-              this.onSend()
-            } else {
-              wx.showToast({ title: callRes.result?.error || '识别失败', icon: 'none' })
-            }
-          },
-          fail: () => {
-            wx.hideLoading()
-            wx.showToast({ title: '识别服务暂不可用', icon: 'none' })
+    wx.getStorage({
+      key: 'serverConfig',
+      success: (configRes) => {
+        const speechUrl = configRes.data?.speechUrl || ''
+        if (speechUrl) {
+          this.uploadToServerAndRecognize(res.tempFilePath, fileExtension, speechUrl)
+        } else {
+          this.handleRecordingFallback()
+        }
+      },
+      fail: () => {
+        this.handleRecordingFallback()
+      }
+    })
+  },
+  
+  uploadToServerAndRecognize: function(filePath, fileExtension, serverUrl) {
+    wx.uploadFile({
+      url: serverUrl,
+      filePath: filePath,
+      name: 'file',
+      formData: {
+        filename: `voice/${Date.now()}.${fileExtension}`
+      },
+      success: (res) => {
+        wx.hideLoading()
+        try {
+          const data = JSON.parse(res.data)
+          if (data.text) {
+            this.setData({ inputText: data.text })
+            this.onSend()
+          } else {
+            throw new Error('识别结果格式错误')
           }
-        })
+        } catch (e) {
+          console.error('解析识别结果失败:', e)
+          wx.showToast({ title: '识别失败', icon: 'none' })
+        }
       },
       fail: () => {
         wx.hideLoading()
-        wx.showToast({ title: '文件上传失败', icon: 'none' })
+        this.handleRecordingFallback()
+      }
+    })
+  },
+  
+  handleRecordingFallback: function() {
+    wx.hideLoading()
+    wx.showModal({
+      title: '语音识别',
+      content: '当前环境不支持语音识别，是否切换到文字输入？',
+      confirmText: '切换文字',
+      cancelText: '取消',
+      success: (modalRes) => {
+        if (modalRes.confirm) {
+          this.setData({ inputMode: 'text' })
+        }
       }
     })
   },
@@ -345,7 +376,6 @@ Page({
       currentStage: currentStage.id,
       stageName: currentStage.name,
       conversationPhase: userMemory.progress.conversationPhase || 'trust_building',
-      userMemory,
       goal,
       userAvatar: avatarUrl,
       userNickName: userInfo.nickName || ''
@@ -466,9 +496,11 @@ Page({
   },
 
   scrollToBottom: function() {
-    const currentScrollTop = this.data.scrollTop
-    const newScrollTop = currentScrollTop === 999999 ? 999998 : 999999
-    this.setData({ scrollTop: newScrollTop })
+    const messages = this.data.messages
+    if (messages.length > 0) {
+      const lastMessageId = messages[messages.length - 1].id
+      this.setData({ scrollToId: 'msg-' + lastMessageId })
+    }
   },
 
   onScroll: function(e) {
@@ -498,7 +530,13 @@ Page({
   },
 
   onInput: function(e) {
-    this.setData({ inputText: e.detail.value })
+    const MAX_INPUT_LENGTH = 2000
+    let value = e.detail.value
+    if (value.length > MAX_INPUT_LENGTH) {
+      value = value.substring(0, MAX_INPUT_LENGTH)
+      wx.showToast({ title: `输入已达${MAX_INPUT_LENGTH}字上限`, icon: 'none' })
+    }
+    this.setData({ inputText: value })
     if (this.data.showFloatHeader) {
       this.resetFloatHeaderTimer()
     }
@@ -580,7 +618,8 @@ Page({
   },
 
   onSend: async function() {
-    const { inputText, messages, goal, userMemory } = this.data
+    const { inputText, messages, goal } = this.data
+    const userMemory = wx.getStorageSync('userMemory') || this.getDefaultMemory()
     if (!inputText.trim()) return
 
     Tracker.sendMessage(inputText.trim(), this.data.inputMode)
@@ -598,7 +637,7 @@ Page({
       messages: newMessages,
       inputText: '',
       isLoading: true,
-      scrollTop: 999999
+      scrollToId: 'msg-' + userMessage.id
     })
 
     const biographyIntent = this.isBiographyIntent(inputText.trim())
@@ -630,7 +669,7 @@ Page({
         const updatedMessages = [...newMessages, aiMessage]
         this.setData({ 
           messages: updatedMessages,
-          scrollTop: 999999
+          scrollToId: 'msg-' + aiMessage.id
         })
         wx.setStorageSync('currentChatMessages', updatedMessages)
 
@@ -651,20 +690,33 @@ Page({
         console.error('LLM call error:', err)
         Tracker.error(err.message || 'LLM call failed', 'api_error')
         
-        wx.showToast({ title: '网络错误，请重试', icon: 'none' })
-        
-        const fallbackMessage = {
-          id: 'ai_' + Date.now(),
-          role: 'ai',
-          content: '抱歉，网络不太稳定，可以再说一遍吗？',
-          time: this.formatTime(new Date()),
-          timestamp: new Date().toISOString()
+        if (err.message && err.message.includes('API Token 未配置')) {
+          wx.showModal({
+            title: 'API Token 未配置',
+            content: '请先在"我的"页面配置 Minimax Token Plan 订阅 Key',
+            confirmText: '去配置',
+            success: (res) => {
+              if (res.confirm) {
+                wx.switchTab({ url: '/pages/my/index' })
+              }
+            }
+          })
+        } else {
+          wx.showToast({ title: '网络错误，请重试', icon: 'none' })
+          
+          const fallbackMessage = {
+            id: 'ai_' + Date.now(),
+            role: 'ai',
+            content: '抱歉，网络不太稳定，可以再说一遍吗？',
+            time: this.formatTime(new Date()),
+            timestamp: new Date().toISOString()
+          }
+          
+          this.setData({ 
+            messages: [...newMessages, fallbackMessage],
+            scrollTop: 999999
+          })
         }
-        
-        this.setData({ 
-          messages: [...newMessages, fallbackMessage],
-          scrollTop: 999999
-        })
       })
   },
 

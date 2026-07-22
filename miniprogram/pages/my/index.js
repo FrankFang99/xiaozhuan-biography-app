@@ -189,6 +189,23 @@ Page({
     })
   },
 
+  onApiSettings: function() {
+    const currentToken = wx.getStorageSync('minimaxToken') || ''
+    wx.showModal({
+      title: 'API设置',
+      editable: true,
+      placeholderText: '请输入Minimax Token Plan订阅Key（sk-cp-开头）',
+      content: currentToken,
+      confirmText: '保存',
+      success: (res) => {
+        if (res.confirm && res.content) {
+          wx.setStorageSync('minimaxToken', res.content.trim())
+          wx.showToast({ title: '设置成功', icon: 'success' })
+        }
+      }
+    })
+  },
+
   onAvatarError: function() {
     if (this.data.userInfo) {
       this.setData({

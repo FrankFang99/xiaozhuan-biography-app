@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAppStore, Message } from '../stores/useAppStore';
 import { aiService, STRUCTURE_CONFIG } from '../services/aiService';
-import { User, Volume2, Mic, Keyboard, RefreshCw, ChevronDown, Bell, X, Settings, MessageSquare } from 'lucide-react';
+import { User, Volume2, Mic, Keyboard, RefreshCw, ChevronDown, Settings, Image as ImageIcon } from 'lucide-react';
+import biographerImage from '../assets/biographer_avatar.jpg';
 
 export function ChatPage() {
   const [inputValue, setInputValue] = useState('');
@@ -14,9 +15,9 @@ export function ChatPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [showVoiceTutorial, setShowVoiceTutorial] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [hasNotification, setHasNotification] = useState(false);
 
   const messages = useAppStore((state) => state.messages);
   const addMessage = useAppStore((state) => state.addMessage);
@@ -28,6 +29,7 @@ export function ChatPage() {
   const fontSize = useAppStore((state) => state.fontSize);
   const setFontSize = useAppStore((state) => state.setFontSize);
   const setCurrentPage = useAppStore((state) => state.setCurrentPage);
+  const currentUser = useAppStore((state) => state.currentUser);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
@@ -42,6 +44,7 @@ export function ChatPage() {
     
     const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
     setNotifications(storedNotifications);
+    setHasNotification(storedNotifications.length > 0);
     
     if (!userMemory.hasSeenVoiceTutorial) {
       setShowVoiceTutorial(true);
@@ -371,6 +374,60 @@ export function ChatPage() {
     setInputMode(prev => prev === 'voice' ? 'text' : 'voice');
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageUrl = event.target?.result as string;
+      handleSendImage(imageUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSendImage = async (imageUrl: string) => {
+    if (isTyping) return;
+
+    const userMessage = {
+      id: Date.now().toString(),
+      sender: 'user' as const,
+      content: imageUrl,
+      time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      type: 'image' as const
+    };
+
+    addMessage(userMessage);
+    setIsTyping(true);
+
+    try {
+      let fullResponse = '';
+      await aiService.sendMessageStream(imageUrl, (chunk) => {
+        fullResponse += chunk;
+        setStreamContent(fullResponse);
+      }, userMemory, goal);
+
+      setIsTyping(false);
+      setStreamContent('');
+
+      if (fullResponse) {
+        addMessage({ sender: 'agent', content: fullResponse });
+      }
+
+      updateConversationPhase();
+      handleExtractMemory();
+    } catch (error) {
+      console.error('Send image failed:', error);
+      setIsTyping(false);
+      setStreamContent('');
+
+      addMessage({
+        sender: 'agent',
+        content: '抱歉，我刚才走神了，您能再说一遍吗？'
+      });
+    }
+  };
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
     const scrollTop = target.scrollTop;
@@ -393,8 +450,8 @@ export function ChatPage() {
 
   const clearNotifications = () => {
     setNotifications([]);
+    setHasNotification(false);
     localStorage.removeItem('notifications');
-    setShowNotifications(false);
   };
 
   const getFontSizeClass = () => {
@@ -406,38 +463,60 @@ export function ChatPage() {
   };
 
   const renderMessage = (message: Message) => (
-    <div key={message.id} className={`flex gap-3 ${message.sender === 'agent' ? 'justify-start' : 'justify-end'}`}>
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 overflow-hidden ${
-        message.sender === 'agent'
-          ? 'bg-[#D4A853]/20'
-          : 'bg-white/10'
-      }`}>
-        {message.sender === 'agent' ? (
-          <img src="./biographer.jpg" alt="小传" className="w-full h-full object-cover" />
-        ) : currentUser?.avatarUrl ? (
-          <img src={currentUser.avatarUrl} alt="用户" className="w-full h-full object-cover" />
+    <div key={message.id} className={`flex gap-3 ${message.sender === 'agent' ? 'justify-start' : 'justify-end'} mb-6`}>
+      {message.sender === 'agent' && (
+        <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden bg-[#D4A853]/20 border border-[#D4A853]/30">
+          <img src={biographerImage} alt="小传" className="w-full h-full object-cover" />
+        </div>
+      )}
+      <div className={`max-w-[75%] ${message.sender === 'agent' ? 'flex flex-col' : 'flex flex-col items-end'}`}>
+        {message.type === 'image' ? (
+          <div className={`rounded-2xl shadow-sm overflow-hidden ${
+            message.sender === 'agent'
+              ? 'rounded-tl-sm'
+              : 'rounded-tr-sm bg-gradient-to-r from-[#07c160] to-[#06ad56] p-1'
+          }`}>
+            <img
+              src={message.content}
+              alt="图片"
+              className="max-w-xs max-h-[300px] object-cover rounded-xl"
+              onClick={() => window.open(message.content, '_blank')}
+              style={{ cursor: 'pointer' }}
+            />
+          </div>
         ) : (
-          <User className="w-5 h-5 text-white/70" />
+          <div className={`px-5 py-3 rounded-2xl leading-relaxed shadow-sm ${getFontSizeClass()} ${
+            message.sender === 'agent'
+              ? 'bg-white rounded-tl-sm text-gray-900'
+              : 'bg-gradient-to-r from-[#07c160] to-[#06ad56] text-white rounded-tr-sm'
+          }`} style={{ fontFamily: 'Noto Serif SC, serif' }}>
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          </div>
         )}
-      </div>
-      <div className={`max-w-[80%] ${message.sender === 'agent' ? 'flex flex-col' : 'flex flex-col items-end'}`}>
-        <div className={`px-4 py-3 rounded-xl leading-relaxed shadow-md ${getFontSizeClass()} ${
-          message.sender === 'agent'
-            ? 'bg-white/10 border-l-4 border-[#D4A853]'
-            : 'bg-[#D4A853]/20 border-r-4 border-[#D4A853]'
-        }`} style={{ fontFamily: 'Noto Serif SC, serif' }}>
-          <p className="text-white">{message.content}</p>
-        </div>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-xs text-white/40">{message.time}</span>
-          <button
-            onClick={() => handleSpeak(message.content)}
-            className="text-white/40 hover:text-[#D4A853] transition-colors p-1 rounded-full hover:bg-white/10"
-          >
-            <Volume2 className="w-4 h-4" />
-          </button>
+        <div className="flex items-center gap-2 mt-1.5 px-1">
+          <span className="text-xs text-gray-400">{message.time}</span>
+          {message.sender === 'agent' && message.type !== 'image' && (
+            <button
+              onClick={() => handleSpeak(message.content)}
+              className="text-gray-400 hover:text-[#D4A853] transition-colors p-1 rounded-full hover:bg-gray-100"
+              title="朗读"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
+      {message.sender === 'user' && (
+        <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden bg-white/10 border border-white/20 flex items-center justify-center">
+          {currentUser?.avatarUrl ? (
+            <img src={currentUser.avatarUrl} alt="用户" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full rounded-full bg-gradient-to-br from-[#95ec69] to-[#73d13d] flex items-center justify-center">
+              <span className="text-xs font-bold text-white">{currentUser?.nickName?.charAt(0) || '用'}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 
@@ -456,89 +535,112 @@ export function ChatPage() {
   const daysRemaining = goal?.targetTime === 'week' ? Math.max(0, 7 - Math.floor((Date.now() - new Date(goal.startDate).getTime()) / (1000 * 60 * 60 * 24))) : 
                         goal?.targetTime === 'month' ? Math.max(0, 30 - Math.floor((Date.now() - new Date(goal.startDate).getTime()) / (1000 * 60 * 60 * 24))) : 0;
 
-  const currentUser = useAppStore((state) => state.currentUser);
-
   return (
-    <div className="min-h-screen bg-[#030512] flex flex-col">
-      <div className="bg-gradient-to-b from-[#0D1F3C] to-[#030512] px-4 py-4">
+    <div className="h-screen bg-gradient-to-b from-[#eef2f7] to-[#f5f7fa] flex flex-col overflow-hidden">
+      {/* 顶部头部区域 - 固定高度 */}
+      <div className="bg-white/95 px-4 py-3 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#D4A853]/20">
-            <img src="./biographer.jpg" alt="小传" className="w-full h-full object-cover" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#D4A853]/20 flex-shrink-0">
+            <img src={biographerImage} alt="小传" className="w-full h-full object-cover" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-white" style={{ fontFamily: 'Noto Serif SC, serif' }}>小传</h3>
-            <span className="text-xs text-[#D4A853]">{getCurrentStageName()}</span>
+            <h3 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Noto Serif SC, serif' }}>小传</h3>
+            <span className="text-sm text-[#D4A853]">{getCurrentStageName()}</span>
           </div>
-          <button onClick={() => setShowSettings(true)} className="text-white/70 hover:text-white">
-            <Settings className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+              title="设置"
+            >
+              <span className="text-[#D4A853] font-bold text-xs">A</span>
+            </button>
+            <button onClick={() => setShowSettings(true)} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors" title="设置">
+              <Settings className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
         </div>
         
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <div className={`w-2 h-2 rounded-full transition-all ${userMemory.progress.conversationPhase === 'trust_building' ? 'bg-[#D4A853] scale-125' : 'bg-white/30'}`} />
-          <div className={`w-8 h-0.5 transition-all ${userMemory.progress.conversationPhase !== 'trust_building' ? 'bg-[#D4A853]' : 'bg-white/20'}`} />
-          <div className={`w-2 h-2 rounded-full transition-all ${userMemory.progress.conversationPhase === 'interest_exploration' ? 'bg-[#D4A853] scale-125' : 'bg-white/30'}`} />
-          <div className={`w-8 h-0.5 transition-all ${userMemory.progress.conversationPhase === 'deep_collection' ? 'bg-[#D4A853]' : 'bg-white/20'}`} />
-          <div className={`w-2 h-2 rounded-full transition-all ${userMemory.progress.conversationPhase === 'deep_collection' ? 'bg-[#D4A853] scale-125' : 'bg-white/30'}`} />
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className={`w-4 h-4 rounded-full transition-all ${userMemory.progress.conversationPhase === 'trust_building' ? 'bg-[#D4A853] scale-125' : 'bg-gray-200'}`} />
+          <div className={`w-10 h-1 rounded-full transition-all ${userMemory.progress.conversationPhase !== 'trust_building' ? 'bg-[#D4A853]' : 'bg-gray-200'}`} />
+          <div className={`w-4 h-4 rounded-full transition-all ${userMemory.progress.conversationPhase === 'interest_exploration' ? 'bg-[#D4A853] scale-125' : 'bg-gray-200'}`} />
+          <div className={`w-10 h-1 rounded-full transition-all ${userMemory.progress.conversationPhase === 'deep_collection' ? 'bg-[#D4A853]' : 'bg-gray-200'}`} />
+          <div className={`w-4 h-4 rounded-full transition-all ${userMemory.progress.conversationPhase === 'deep_collection' ? 'bg-[#D4A853] scale-125' : 'bg-gray-200'}`} />
         </div>
 
         {progressPercent > 0 && (
-          <div className="bg-white/5 rounded-lg p-3">
+          <div className="bg-gray-50 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-white/70">传记进度</span>
-              <span className="text-xs font-bold text-[#D4A853]">{progressPercent}%</span>
+              <span className="text-sm text-gray-600">传记进度</span>
+              <span className="text-sm font-bold text-[#D4A853]">{progressPercent}%</span>
             </div>
-            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-[#D4A853] to-[#C73E3A] rounded-full transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
             <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-white/40">{letters.length}/{targetLetterCount}封信件</span>
-              {daysRemaining > 0 && <span className="text-xs text-white/40">预计剩余{daysRemaining}天</span>}
+              <span className="text-xs text-gray-400">{letters.length}/{targetLetterCount}封信件</span>
+              {daysRemaining > 0 && <span className="text-xs text-[#e74c3c]">预计剩余{daysRemaining}天</span>}
             </div>
           </div>
         )}
       </div>
 
       {showFloatHeader && (
-        <div className="bg-[#0D1F3C]/95 backdrop-blur-md text-white px-4 py-3 sticky top-0 z-10 shadow-lg">
+        <div className="bg-white/98 backdrop-blur-md text-gray-900 px-5 py-4 sticky top-0 z-10 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#D4A853]/20">
-              <img src="./biographer.jpg" alt="小传" className="w-full h-full object-cover" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden bg-[#D4A853]/20">
+              <img src={biographerImage} alt="小传" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1">
-              <span className="text-sm text-white/70">{getCurrentStageName()}</span>
+              <span className="text-sm text-gray-900 font-medium">{getCurrentStageName()}</span>
               {progressPercent > 0 && (
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                     <div className="h-full bg-[#D4A853]" style={{ width: `${progressPercent}%` }} />
                   </div>
                   <span className="text-xs text-[#D4A853]">{progressPercent}%</span>
                 </div>
               )}
             </div>
-            <button onClick={() => { setShowFloatHeader(false); scrollToBottom(); }} className="text-white/70 hover:text-white">
+            <button onClick={() => { setShowFloatHeader(false); scrollToBottom(); }} className="text-gray-400 hover:text-gray-600">
               <ChevronDown className="w-5 h-5" />
             </button>
           </div>
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24" onScroll={handleScroll}>
-        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-          <p className="text-sm text-white/70">
-            今天我们聊聊<span className="text-[#D4A853] font-semibold">{getCurrentStageName()}</span>，您可以分享任何想说的故事...
-          </p>
+      {hasNotification && notifications.length > 0 && (
+        <div className="mx-5 mt-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm" onClick={clearNotifications}>
+          <div className="space-y-3">
+            {notifications.slice(0, 3).map(notif => (
+              <div key={notif.id} className="flex flex-col gap-1">
+                <span className="text-sm font-semibold text-[#D4A853]">{notif.type}</span>
+                <span className="text-sm text-gray-600">{notif.text}</span>
+                <span className="text-xs text-gray-400">{notif.time}</span>
+              </div>
+            ))}
+          </div>
+          <span className="text-xs text-gray-400 text-center block mt-3 pt-3 border-t border-gray-100">点击清空</span>
         </div>
+      )}
 
+      {/* 消息列表区域 - 自适应高度，可滚动 */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-4" onScroll={handleScroll}>
         {suggestedQuestions.length > 0 && (
-          <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-white/70">可以聊聊这些话题：</span>
-              <button onClick={handleRefreshQuestions} className="text-[#D4A853] hover:text-white transition-colors">
-                <RefreshCw className="w-4 h-4" />
+          <div className="bg-white/80 rounded-xl p-3 border border-gray-100 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full overflow-hidden bg-[#D4A853]/20 flex-shrink-0">
+                  <img src={biographerImage} alt="小传" className="w-full h-full object-cover" />
+                </div>
+                <span className="text-xs text-gray-700">可以聊聊这些话题：</span>
+              </div>
+              <button onClick={handleRefreshQuestions} className="text-[#D4A853] hover:text-gray-900 transition-colors p-1" title="刷新">
+                <RefreshCw className="w-3.5 h-3.5" />
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -546,7 +648,7 @@ export function ChatPage() {
                 <button
                   key={index}
                   onClick={() => handleSelectQuestion(question)}
-                  className="px-4 py-2 bg-white/10 border border-white/20 rounded-full text-sm text-white/80 hover:border-[#D4A853] hover:text-[#D4A853] transition-colors"
+                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-700 hover:border-[#D4A853] hover:text-[#D4A853] transition-colors"
                 >
                   {question}
                 </button>
@@ -558,17 +660,17 @@ export function ChatPage() {
         {messages.map(renderMessage)}
 
         {(isTyping || streamContent) && (
-          <div className="flex gap-3 justify-start">
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#D4A853]/20">
-              <img src="./biographer.jpg" alt="小传" className="w-full h-full object-cover" />
+          <div className="flex gap-3 justify-start mb-6">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-[#D4A853]/20 border border-[#D4A853]/30 flex-shrink-0">
+              <img src={biographerImage} alt="小传" className="w-full h-full object-cover" />
             </div>
-            <div className="bg-white/10 px-4 py-3 rounded-xl border-l-4 border-[#D4A853] max-w-[80%]">
-              <p className="text-white text-base leading-relaxed" style={{ fontFamily: 'Noto Serif SC, serif' }}>
+            <div className="bg-white px-5 py-3 rounded-2xl rounded-tl-sm shadow-sm max-w-[75%]">
+              <p className="text-gray-900 text-base leading-relaxed" style={{ fontFamily: 'Noto Serif SC, serif' }}>
                 {streamContent || (
-                  <span className="flex gap-1">
-                    <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  <span className="flex gap-2 items-center">
+                    <span className="w-2 h-2 bg-[#D4A853] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-2 h-2 bg-[#D4A853] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-2 h-2 bg-[#D4A853] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                   </span>
                 )}
               </p>
@@ -579,21 +681,23 @@ export function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-[#070b1f] px-4 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] border-t border-white/5">
-        <div className="flex items-center gap-3 mb-3">
+      {/* 底部输入区域 - 固定在TabBar上方 */}
+      <div className="bg-white px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.05)] border-t border-gray-100 flex-shrink-0 pb-20">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleToggleInputMode}
-            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-              inputMode === 'voice' ? 'bg-[#D4A853]/20 text-[#D4A853]' : 'bg-white/10 text-white/70'
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors flex-shrink-0 ${
+              inputMode === 'voice' ? 'bg-[#07c160]/20 text-[#07c160]' : 'bg-gray-100 text-gray-600'
             }`}
+            title={inputMode === 'voice' ? '切换到文字' : '切换到语音'}
           >
-            {inputMode === 'voice' ? <Mic className="w-5 h-5" /> : <Keyboard className="w-5 h-5" />}
+            {inputMode === 'voice' ? <Mic className="w-4 h-4" /> : <Keyboard className="w-4 h-4" />}
           </button>
-          
+
           {inputMode === 'voice' ? (
-            <div 
-              className={`flex-1 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                isRecording ? 'bg-[#C73E3A]/30 border-2 border-[#C73E3A]' : 'bg-white/5 border-2 border-white/10'
+            <div
+              className={`flex-1 h-10 rounded-full flex items-center justify-center transition-colors ${
+                isRecording ? 'bg-[#C73E3A]/20 border-2 border-[#C73E3A]' : 'bg-gradient-to-r from-[#07c160] to-[#06ad56] border-2 border-[#07c160]'
               }`}
               onMouseDown={handleTouchStart}
               onMouseUp={handleTouchEnd}
@@ -602,34 +706,50 @@ export function ChatPage() {
               onTouchEnd={handleTouchEnd}
             >
               {isRecording ? (
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 bg-[#C73E3A] rounded-full animate-pulse"></span>
-                  <span className="text-[#C73E3A] font-medium">{recordingDuration}s</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#C73E3A] rounded-full animate-pulse"></span>
+                  <span className="text-[#C73E3A] font-medium text-sm">{recordingDuration}s</span>
                 </div>
               ) : (
-                <span className="text-white/70">按住说话</span>
+                <span className="text-white font-medium text-sm">按住说话</span>
               )}
             </div>
           ) : (
-            <textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="说说您的故事..."
-              className="flex-1 h-12 px-4 py-2 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder:text-white/30 resize-none focus:outline-none focus:border-[#D4A853] text-base"
-              rows={1}
-              style={{ fontFamily: 'Noto Serif SC, serif' }}
-            />
+            <div className="flex-1 flex items-center gap-2">
+              <button
+                onClick={() => document.getElementById('image-upload')?.click()}
+                className="w-9 h-9 rounded-full flex items-center justify-center bg-[#07c160]/20 text-[#07c160] hover:bg-[#07c160]/30 transition-colors flex-shrink-0"
+                title="发送图片"
+              >
+                <ImageIcon className="w-4 h-4" />
+              </button>
+              <input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+              <textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="说说您的故事..."
+                className="flex-1 h-10 px-4 py-2 bg-gray-50 border-2 border-gray-200 rounded-full text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none focus:border-[#D4A853] text-sm"
+                rows={1}
+                style={{ fontFamily: 'Noto Serif SC, serif' }}
+              />
+            </div>
           )}
 
           {inputMode === 'text' && (
             <button
               onClick={handleSend}
               disabled={!inputValue.trim() || isTyping}
-              className={`px-6 h-12 rounded-xl font-bold text-base transition-all ${
+              className={`px-5 h-10 rounded-full font-bold text-sm transition-all flex-shrink-0 ${
                 inputValue.trim() && !isTyping
-                  ? 'bg-gradient-to-r from-[#D4A853] to-[#C73E3A] text-white shadow-lg hover:shadow-[0_0_20px_rgba(212,168,83,0.3)]'
-                  : 'bg-white/10 text-white/30 cursor-not-allowed'
+                  ? 'bg-gradient-to-r from-[#D4A853] to-[#b89444] text-white shadow-md hover:shadow-lg'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
               发送
@@ -639,26 +759,26 @@ export function ChatPage() {
       </div>
 
       {showVoiceTutorial && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6">
-          <div className="bg-[#070b1f] rounded-2xl p-6 max-w-sm w-full border border-white/10">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-6">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
             <div className="text-center mb-6">
               <div className="w-16 h-16 mx-auto mb-4 bg-[#D4A853]/20 rounded-full flex items-center justify-center">
                 <Mic className="w-8 h-8 text-[#D4A853]" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Noto Serif SC, serif' }}>语音输入教程</h3>
-              <p className="text-sm text-white/70">按住下方按钮说话，松开后自动发送</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Noto Serif SC, serif' }}>语音输入教程</h3>
+              <p className="text-sm text-gray-600">按住下方按钮说话，松开后自动发送</p>
             </div>
             
-            <div className="bg-white/5 rounded-lg p-4 mb-6">
+            <div className="bg-gray-50 rounded-xl p-4 mb-6">
               <div className="flex items-center justify-center gap-3">
                 <div className="w-4 h-4 bg-[#D4A853] rounded-full animate-pulse"></div>
-                <span className="text-white/70 text-sm">请按住按钮开始说话</span>
+                <span className="text-gray-600 text-sm">请按住按钮开始说话</span>
               </div>
             </div>
             
             <button
               onClick={closeVoiceTutorial}
-              className="w-full py-3 bg-gradient-to-r from-[#D4A853] to-[#C73E3A] rounded-xl text-white font-bold"
+              className="w-full py-3 bg-gradient-to-r from-[#D4A853] to-[#b89444] rounded-xl text-white font-bold"
             >
               我知道了
             </button>
@@ -666,61 +786,19 @@ export function ChatPage() {
         </div>
       )}
 
-      {showNotifications && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-[#070b1f] rounded-t-2xl border-t border-white/10">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-              <h3 className="text-lg font-bold text-white">通知</h3>
-              <div className="flex items-center gap-3">
-                <button onClick={clearNotifications} className="text-white/50 text-sm hover:text-white">
-                  清空
-                </button>
-                <button onClick={() => setShowNotifications(false)} className="text-white/70">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="max-h-96 overflow-y-auto p-4">
-              {notifications.length === 0 ? (
-                <div className="text-center py-8 text-white/50">
-                  暂无通知
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {notifications.map(notif => (
-                    <div key={notif.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          notif.type === '新信件' ? 'bg-[#D4A853]/20 text-[#D4A853]' : 'bg-white/10 text-white/70'
-                        }`}>
-                          {notif.type}
-                        </span>
-                        <span className="text-xs text-white/40">{notif.time}</span>
-                      </div>
-                      <p className="text-white/80 text-sm">{notif.text}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {showSettings && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-[#070b1f] rounded-t-2xl border-t border-white/10">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-              <h3 className="text-lg font-bold text-white">设置</h3>
-              <button onClick={() => setShowSettings(false)} className="text-white/70">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+          <div className="w-full bg-white rounded-t-3xl shadow-xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900">设置</h3>
+              <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600">
+                <span className="text-2xl">&times;</span>
               </button>
             </div>
             
-            <div className="p-4">
+            <div className="p-6">
               <div className="mb-6">
-                <h4 className="text-sm text-white/70 mb-3">字体大小</h4>
+                <h4 className="text-sm text-gray-600 mb-3">字体大小</h4>
                 <div className="flex gap-3">
                   {[
                     { value: 'small', label: '小' },
@@ -734,8 +812,8 @@ export function ChatPage() {
                       }}
                       className={`flex-1 py-3 rounded-xl border transition-all ${
                         fontSize === size.value
-                          ? 'bg-[#D4A853]/20 border-[#D4A853] text-white'
-                          : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                          ? 'bg-[#D4A853]/20 border-[#D4A853] text-gray-900'
+                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                       }`}
                     >
                       {size.label}
@@ -745,14 +823,14 @@ export function ChatPage() {
               </div>
               
               <div className="mb-6">
-                <h4 className="text-sm text-white/70 mb-3">输入模式</h4>
+                <h4 className="text-sm text-gray-600 mb-3">输入模式</h4>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setInputMode('voice')}
                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border transition-all ${
                       inputMode === 'voice'
-                        ? 'bg-[#D4A853]/20 border-[#D4A853] text-white'
-                        : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                        ? 'bg-[#D4A853]/20 border-[#D4A853] text-gray-900'
+                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     <Mic className="w-4 h-4" />
@@ -762,8 +840,8 @@ export function ChatPage() {
                     onClick={() => setInputMode('text')}
                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border transition-all ${
                       inputMode === 'text'
-                        ? 'bg-[#D4A853]/20 border-[#D4A853] text-white'
-                        : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                        ? 'bg-[#D4A853]/20 border-[#D4A853] text-gray-900'
+                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     <Keyboard className="w-4 h-4" />

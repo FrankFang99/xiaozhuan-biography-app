@@ -196,6 +196,16 @@ const MODEL_CONFIG = {
     topP: 0.9,
     isFallback: true
   },
+  minimax_multimodal: {
+    name: 'Minimax Multimodal',
+    baseUrl: 'https://api.minimax.chat/v1',
+    model: 'vision-pro',
+    maxTokens: 800,
+    temperature: 0.7,
+    topP: 0.9,
+    strengths: ['图像理解', '图片描述', '多模态对话'],
+    isMultimodal: true
+  },
   deepseek: {
     name: 'DeepSeek',
     baseUrl: 'https://api.deepseek.com/v1',

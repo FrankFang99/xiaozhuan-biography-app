@@ -71,7 +71,7 @@
     <text class="notification-clear text-ghost-muted">点击清空</text>
   </view>
 
-  <scroll-view class="message-list" scroll-y scroll-top="{{scrollTop}}" style="height: {{scrollHeight}}px;" enhanced bindscroll="onScroll">
+  <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollToId}}" style="height: {{scrollHeight}}px;" enhanced bindscroll="onScroll">
     <view 
       wx:for="{{messages}}" 
       wx:key="id" 
@@ -150,16 +150,6 @@
         bindmousedown="onMouseDown"
         bindmouseup="onMouseUp"
       >
-        <view class="voice-icon {{isRecording ? 'recording' : ''}}">
-          <view class="mic"></view>
-          <view wx:if="{{isRecording}}" class="recording-wave">
-            <view class="wave-bar"></view>
-            <view class="wave-bar"></view>
-            <view class="wave-bar"></view>
-            <view class="wave-bar"></view>
-            <view class="wave-bar"></view>
-          </view>
-        </view>
         <text class="voice-text">{{isRecording ? recordingDuration + '秒' : '按住说话'}}</text>
       </view>
     </view>
@@ -176,10 +166,18 @@
       <button class="send-btn" bindtap="onSend" disabled="{{!inputText}}">发送</button>
     </view>
     
-    <view class="mode-toggle" bindtap="onToggleInputMode">
-      <view class="toggle-icon {{inputMode === 'voice' ? 'voice' : 'text'}}">
-        <view wx:if="{{inputMode === 'voice'}}" class="icon-text"></view>
-        <view wx:else class="icon-mic"></view>
+    <view class="input-right-actions">
+      <view class="action-btn mode-toggle" bindtap="onToggleInputMode">
+        <view wx:if="{{inputMode === 'text'}}" class="icon-mic-container">
+          <view class="mic-icon-wrapper">
+            <view class="mic-track"></view>
+            <view class="mic-arc"></view>
+            <view class="mic-line"></view>
+          </view>
+        </view>
+        <view wx:else class="icon-text-btn">
+          <text class="text-icon">字</text>
+        </view>
       </view>
     </view>
   </view>
@@ -244,4 +242,5 @@
     bind:complete="onTutorialComplete" 
     bind:skip="onTutorialSkip" 
   />
-</view>
+
+  </view>

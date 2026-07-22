@@ -14,10 +14,12 @@
       <view class="icon-letter" wx:if="{{item.icon === 'letter'}}">
         <view class="letter-envelope"></view>
         <view class="letter-flap"></view>
+        <view class="letter-line"></view>
       </view>
       <view class="icon-my" wx:if="{{item.icon === 'my'}}">
         <view class="my-circle"></view>
-        <view class="my-inner"></view>
+        <view class="my-head"></view>
+        <view class="my-body"></view>
       </view>
     </view>
     <text class="tab-text">{{item.text}}</text>

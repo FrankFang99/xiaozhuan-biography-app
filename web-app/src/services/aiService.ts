@@ -164,27 +164,37 @@ export const STRUCTURE_CONFIG = {
 
 const MODEL_CONFIG = {
   minimax: {
-    name: 'Minimax abab6',
-    baseUrl: 'https://api.minimaxi.com/v1',
-    token: '<MINIMAX_TOKEN>',
-    model: 'abab6-chat',
+    name: 'Minimax M2.5',
+    baseUrl: 'https://www.minimaxi.com/v1',
+    token: process.env.REACT_APP_MINIMAX_TOKEN || 'sk-cp-Y0zSTfvYIXmHmohQzg58dPrtnUOORLpkh2XG4NbWEehE9ChnjMQ4mN1gGA9YrIRkoaZHYd527kSPPf8NYeT_vzIDTICnFX292aY4ycmlPvEFUTZurzosEoI',
+    model: 'MiniMax-M2.5',
     maxTokens: 800,
     temperature: 0.8,
     topP: 0.9
   },
   minimax_m3: {
     name: 'Minimax M3',
-    baseUrl: 'https://api.minimaxi.com/v1',
-    token: '<MINIMAX_TOKEN>',
-    model: 'm3-chat',
+    baseUrl: 'https://www.minimaxi.com/v1',
+    token: process.env.REACT_APP_MINIMAX_TOKEN || 'sk-cp-Y0zSTfvYIXmHmohQzg58dPrtnUOORLpkh2XG4NbWEehE9ChnjMQ4mN1gGA9YrIRkoaZHYd527kSPPf8NYeT_vzIDTICnFX292aY4ycmlPvEFUTZurzosEoI',
+    model: 'MiniMax-M3',
     maxTokens: 800,
     temperature: 0.7,
     topP: 0.9
   },
+  minimax_multimodal: {
+    name: 'Minimax Multimodal',
+    baseUrl: 'https://www.minimaxi.com/v1',
+    token: process.env.REACT_APP_MINIMAX_TOKEN || 'sk-cp-Y0zSTfvYIXmHmohQzg58dPrtnUOORLpkh2XG4NbWEehE9ChnjMQ4mN1gGA9YrIRkoaZHYd527kSPPf8NYeT_vzIDTICnFX292aY4ycmlPvEFUTZurzosEoI',
+    model: 'MiniMax-M3',
+    maxTokens: 800,
+    temperature: 0.7,
+    topP: 0.9,
+    isMultimodal: true
+  },
   deepseek: {
     name: 'DeepSeek',
     baseUrl: 'https://api.deepseek.com/v1',
-    token: '<DEEPSEEK_TOKEN>',
+    token: process.env.REACT_APP_DEEPSEEK_TOKEN || '<DEEPSEEK_TOKEN>',
     model: 'deepseek-chat',
     maxTokens: 800,
     temperature: 0.7,
@@ -212,7 +222,10 @@ function classifyQuestion(content: string): string {
   return 'chat';
 }
 
-function selectModel(content: string): string {
+function selectModel(content: string, messageType: string = 'text'): string {
+  if (messageType === 'image') {
+    return 'minimax_m3';
+  }
   const category = classifyQuestion(content);
   if (category === 'extraction') {
     return 'deepseek';
@@ -375,22 +388,51 @@ ${conversationPhase !== 'deep_collection' ? '12. 当前阶段不要主动提及�
   return { systemPrompt, currentStage, biographyStages, conversationPhase };
 }
 
-function buildRequestMessages(messages: { role: string; content: string }[], systemPrompt: string): ChatMessage[] {
+interface MultimodalMessage {
+  type: 'text' | 'image_url';
+  text?: string;
+  image_url?: { url: string };
+}
+
+function buildRequestMessages(messages: { role: string; content: string; type?: string }[], systemPrompt: string): ({ role: 'user' | 'system' | 'assistant'; content: string | MultimodalMessage[] })[] {
   const historyMessages = messages.slice(-8);
   return [
     { role: 'system' as const, content: systemPrompt },
-    ...historyMessages.map(msg => ({
-      role: (msg.role === 'ai' ? 'assistant' : 'user') as 'user' | 'assistant',
-      content: msg.content
-    }))
+    ...historyMessages.map(msg => {
+      if (msg.type === 'image') {
+        return {
+          role: (msg.role === 'ai' ? 'assistant' : 'user') as 'user' | 'assistant',
+          content: [
+            {
+              type: 'image_url' as const,
+              image_url: {
+                url: msg.content
+              }
+            },
+            {
+              type: 'text' as const,
+              text: '请分析这张图片，描述图片中的内容，并结合用户的人生故事进行回应。'
+            }
+          ]
+        };
+      }
+      return {
+        role: (msg.role === 'ai' ? 'assistant' : 'user') as 'user' | 'assistant',
+        content: msg.content
+      };
+    })
   ];
 }
 
-async function callLLMDirect(messages: { role: string; content: string }[], goal: Goal | null, userMemory: UserMemory, modelKey: string = 'minimax'): Promise<string> {
+async function callLLMDirect(messages: { role: string; content: string; type?: string }[], goal: Goal | null, userMemory: UserMemory, modelKey: string = 'minimax'): Promise<string> {
   const { systemPrompt } = buildSystemPrompt(goal, userMemory);
   const requestMessages = buildRequestMessages(messages, systemPrompt);
 
   const config = MODEL_CONFIG[modelKey as keyof typeof MODEL_CONFIG] || MODEL_CONFIG.minimax;
+
+  if (config.token && (config.token.includes('<') || config.token.includes('>') || config.token.length < 10)) {
+    throw new Error(`${config.name} API Token 未配置，请在环境变量中配置 API Key`);
+  }
 
   const response = await fetch(config.baseUrl + '/chat/completions', {
     method: 'POST',
@@ -416,9 +458,9 @@ async function callLLMDirect(messages: { role: string; content: string }[], goal
   }
 }
 
-async function callLLM(messages: { role: string; content: string }[], goal: Goal | null, userMemory: UserMemory): Promise<string> {
+async function callLLM(messages: { role: string; content: string; type?: string }[], goal: Goal | null, userMemory: UserMemory): Promise<string> {
   const lastMessage = messages[messages.length - 1];
-  const modelKey = lastMessage ? selectModel(lastMessage.content) : 'minimax';
+  const modelKey = lastMessage ? selectModel(lastMessage.content, lastMessage.type) : 'minimax';
   const fallbackModelKey = 'minimax_m3';
 
   try {

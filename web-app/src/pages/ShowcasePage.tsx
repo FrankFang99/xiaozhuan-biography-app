@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useAppStore } from '../stores/useAppStore';
+import { ArrowLeft } from 'lucide-react';
 
 interface StoryChapter {
   title: string;
@@ -93,6 +95,7 @@ const TABS: Tab[] = [
 export function ShowcasePage() {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [currentTab, setCurrentTab] = useState('preview');
+  const setCurrentPage = useAppStore((state) => state.setCurrentPage);
 
   const selectStory = (story: Story) => {
     setSelectedStory(story);
@@ -107,9 +110,22 @@ export function ShowcasePage() {
     setCurrentTab(tabId);
   };
 
+  const handleBack = () => {
+    setCurrentPage('my');
+  };
+
   return (
     <div className="min-h-screen bg-[#F5E6C8] pb-24">
-      <div className="text-center py-10 px-6">
+      <div className="flex items-center gap-3 px-4 pt-6 pb-2">
+        <button
+          onClick={handleBack}
+          className="w-10 h-10 rounded-full bg-white/60 flex items-center justify-center hover:bg-white transition-colors"
+          title="返回"
+        >
+          <ArrowLeft className="w-5 h-5 text-[#5A3A28]" />
+        </button>
+      </div>
+      <div className="text-center py-6 px-6">
         <h1 className="text-3xl font-bold text-[#5A3A28] font-serif mb-3">聆听岁月的声音</h1>
         <p className="text-base text-[#8A7360]">每一个平凡的人生，都值得被铭记</p>
       </div>

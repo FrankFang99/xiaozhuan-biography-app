@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { useAppStore } from '../stores/useAppStore';
+import { ArrowLeft } from 'lucide-react';
 
 interface TimelineItem {
   year: string;
@@ -395,6 +397,11 @@ export function BiographyPage() {
   const [selectedStar, setSelectedStar] = useState<Biography | null>(null);
   const [showSelector, setShowSelector] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const setCurrentPage = useAppStore((state) => state.setCurrentPage);
+
+  const handleBack = () => {
+    setCurrentPage('my');
+  };
 
   const clickStar = (biography: Biography) => {
     setSelectedStar(biography);
@@ -454,8 +461,18 @@ export function BiographyPage() {
     <div className="min-h-screen bg-[#030512]">
       {viewMode === 'universe' && (
         <div className="relative h-screen overflow-hidden">
-          <div className="fixed top-0 left-0 right-0 z-50 text-center py-12 px-6 bg-gradient-to-b from-[rgba(3,5,18,0.95)] via-[rgba(3,5,18,0.8)] to-transparent">
-            <h1 className="text-3xl font-bold text-white font-serif text-shadow-[0_0_20px_rgba(212,168,83,0.4)] mb-2">传记宇宙</h1>
+          <div className="fixed top-0 left-0 right-0 z-50 text-center py-8 px-6 bg-gradient-to-b from-[rgba(3,5,18,0.95)] via-[rgba(3,5,18,0.8)] to-transparent">
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={handleBack}
+                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors"
+                title="返回"
+              >
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </button>
+              <h1 className="text-2xl font-bold text-white font-serif text-shadow-[0_0_20px_rgba(212,168,83,0.4)]">传记宇宙</h1>
+              <div className="w-10" />
+            </div>
             <p className="text-sm text-white/60">滑动探索，点击星星聆听故事</p>
           </div>
 

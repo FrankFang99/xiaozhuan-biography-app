@@ -110,44 +110,63 @@
 
   <view class="menu-list animate-fade-up" style="animation-delay: 0.25s;">
     <view class="menu-item glass-card" bindtap="onEditGoal">
-      <view class="menu-icon icon-goal"></view>
+      <view class="menu-icon">
+        <view class="icon-goal"></view>
+      </view>
       <text class="menu-text text-white">我的目标</text>
       <text class="menu-arrow">→</text>
     </view>
     <view wx:if="{{biography}}" class="menu-item glass-card" bindtap="onViewBiography">
-      <view class="menu-icon icon-book"></view>
-      <text class="menu-text text-white">查看传记</text>
+      <view class="menu-icon">
+        <view class="icon-star"></view>
+      </view>
+      <text class="menu-text text-white">我的传记</text>
       <text class="menu-arrow">→</text>
     </view>
     <view class="menu-item glass-card" bindtap="onSampleBiography">
-      <view class="menu-icon icon-book"></view>
-      <text class="menu-text text-white">产品介绍</text>
+      <view class="menu-icon">
+        <view class="icon-planet"></view>
+        <view class="icon-planet-ring"></view>
+      </view>
+      <text class="menu-text text-white">传记宇宙</text>
       <text class="menu-arrow">→</text>
     </view>
     <view class="menu-item glass-card" bindtap="onShowcase">
-      <view class="menu-icon icon-book"></view>
+      <view class="menu-icon">
+        <view class="icon-book"></view>
+      </view>
       <text class="menu-text text-white">示例传记</text>
       <text class="menu-arrow">→</text>
     </view>
     <view class="menu-item glass-card" bindtap="onAbout">
-      <view class="menu-icon icon-info"></view>
+      <view class="menu-icon">
+        <text class="icon-info-text">us</text>
+      </view>
       <text class="menu-text text-white">关于我们</text>
       <text class="menu-arrow">→</text>
     </view>
     
+    
     <view class="menu-item glass-card" bindtap="onFeedback">
-      <view class="menu-icon icon-feedback"></view>
+      <view class="menu-icon">
+        <view class="icon-feedback"></view>
+      </view>
       <text class="menu-text text-white">用户反馈</text>
       <text class="menu-arrow">→</text>
     </view>
     
     <view class="menu-item glass-card" bindtap="onClearMemory">
-      <view class="menu-icon icon-trash"></view>
+      <view class="menu-icon">
+        <view class="icon-trash"></view>
+      </view>
       <text class="menu-text text-white">清除记忆</text>
       <text class="menu-arrow">→</text>
     </view>
     <view class="menu-item glass-card danger" bindtap="onLogout">
-      <view class="menu-icon icon-logout"></view>
+      <view class="menu-icon">
+        <view class="icon-logout"></view>
+        <view class="icon-logout-arrow"></view>
+      </view>
       <text class="menu-text text-white">退出登录</text>
       <text class="menu-arrow">→</text>
     </view>
