@@ -8,7 +8,7 @@
     <view class="section">
       <text class="section-title">一、我们收集的信息</text>
       <view class="section-content">
-        <text class="para">1. 微信头像和昵称：当您登录时，我们通过微信授权获取您的头像和昵称，用于展示您的个人资料。</text>
+        <text class="para">1. 微信头像和昵称：当您登录时，我们通过微信授权获取您的头像和昵称，用于在聊天界面和个人中心展示您的个人资料，帮助您在小程序中识别自己的账号身份。</text>
         <text class="para">2. 语音录音：当您使用语音输入功能时，我们通过麦克风录制您的语音并转换为文字，用于与AI传记助手对话。语音数据仅在转换过程中使用，不会永久存储。</text>
         <text class="para">3. 反馈内容：当您提交反馈时，我们收集您填写的反馈内容和可选的联系方式，用于处理您的意见建议。</text>
         <text class="para">4. 聊天记录：我们将在本地存储您与AI的对话记录，用于生成您的个人传记。</text>

@@ -275,6 +275,23 @@
   opacity: 0.5;
 }
 
+.login-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+  margin-top: 16rpx;
+}
+
+.login-btn.secondary:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.login-btn.secondary .login-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 34rpx;
+  font-weight: 500;
+}
+
 .agreement-check {
   display: flex;
   align-items: center;

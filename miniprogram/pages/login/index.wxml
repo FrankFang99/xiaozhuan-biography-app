@@ -35,6 +35,7 @@
         placeholder="请输入昵称" 
         value="{{nickName}}"
         bindinput="onNicknameInput"
+        focus="{{focusNickname}}"
       />
     </view>
     
@@ -50,7 +51,8 @@
     
     <button 
         class="login-btn" 
-        bindtap="onWechatLogin"
+        open-type="chooseAvatar"
+        bindchooseavatar="onWechatQuickLogin"
         disabled="{{isLoading || !agreed}}"
       >
       <view class="wechat-icon">
@@ -60,7 +62,15 @@
           <view class="dot dot-3"></view>
         </view>
       </view>
-      <text class="login-text">开始记录我的故事</text>
+      <text class="login-text">微信一键授权登录</text>
+    </button>
+    
+    <button 
+        class="login-btn secondary" 
+        bindtap="onManualLogin"
+        disabled="{{isLoading}}"
+      >
+      <text class="login-text">手动输入信息登录</text>
     </button>
   </view>
 </view>

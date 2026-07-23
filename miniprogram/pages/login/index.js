@@ -9,7 +9,8 @@ Page({
     nickName: '',
     isChoosingAvatar: false,
     isLoading: false,
-    agreed: false
+    agreed: false,
+    focusNickname: false
   },
 
   onLoad: function() {
@@ -86,7 +87,8 @@ Page({
             if (urlRes.fileList && urlRes.fileList.length > 0 && urlRes.fileList[0].tempFileURL) {
               this.setData({
                 avatarUrl: urlRes.fileList[0].tempFileURL,
-                isChoosingAvatar: false
+                isChoosingAvatar: false,
+                focusNickname: true
               })
             } else {
               this.setData({
@@ -138,7 +140,67 @@ Page({
     })
   },
 
-  onWechatLogin: function() {
+  onWechatQuickLogin: function(e) {
+    const tempAvatarUrl = e.detail.avatarUrl
+    
+    if (!tempAvatarUrl) {
+      wx.showToast({ title: '请选择头像', icon: 'none' })
+      return
+    }
+    
+    this.setData({ isLoading: true })
+    
+    wx.showLoading({ title: '正在登录...' })
+    
+    const cloudPath = 'avatars/' + Date.now() + '.jpg'
+    
+    wx.cloud.uploadFile({
+      cloudPath: cloudPath,
+      filePath: tempAvatarUrl,
+      success: (res) => {
+        wx.cloud.getTempFileURL({
+          fileList: [res.fileID],
+          success: (urlRes) => {
+            wx.hideLoading()
+            if (urlRes.fileList && urlRes.fileList.length > 0 && urlRes.fileList[0].tempFileURL) {
+              const avatarUrl = urlRes.fileList[0].tempFileURL
+              
+              wx.login({
+                success: (loginRes) => {
+                  if (loginRes.code) {
+                    const nickName = this.data.nickName.trim() || '小传用户'
+                    this.completeLogin(loginRes.code, avatarUrl, nickName, '', false)
+                  } else {
+                    this.setData({ isLoading: false })
+                    wx.showToast({ title: '登录失败', icon: 'none' })
+                  }
+                },
+                fail: () => {
+                  this.setData({ isLoading: false })
+                  wx.showToast({ title: '登录失败', icon: 'none' })
+                }
+              })
+            } else {
+              this.setData({ isLoading: false })
+              wx.showToast({ title: '头像获取失败', icon: 'none' })
+            }
+          },
+          fail: () => {
+            wx.hideLoading()
+            this.setData({ isLoading: false })
+            wx.showToast({ title: '头像获取失败', icon: 'none' })
+          }
+        })
+      },
+      fail: () => {
+        wx.hideLoading()
+        this.setData({ isLoading: false })
+        wx.showToast({ title: '头像上传失败', icon: 'none' })
+      }
+    })
+  },
+  
+  onManualLogin: function() {
     const { nickName, avatarUrl } = this.data
     
     if (!nickName.trim()) {
