@@ -119,39 +119,7 @@ Page({
   
   initRecorder: function() {
     this.recorderManager = wx.getRecorderManager()
-    
-    try {
-      const plugin = requirePlugin('WechatSI')
-      this.speechManager = plugin.getRecordRecognitionManager()
-      
-      this.speechManager.onStart = () => {
-        this.setData({ isRecording: true, recordingDuration: 0 })
-        this.startRecordingTimer()
-      }
-      
-      this.speechManager.onStop = (res) => {
-        this.stopRecordingTimer()
-        this.setData({ isRecording: false })
-        
-        if (res.result && res.result.length > 0) {
-          this.setData({ inputText: res.result })
-          this.onSend()
-        } else {
-          wx.showToast({ title: '未识别到语音', icon: 'none' })
-        }
-      }
-      
-      this.speechManager.onError = (err) => {
-        this.stopRecordingTimer()
-        this.setData({ isRecording: false })
-        console.error('Speech recognition error:', err)
-        wx.showToast({ title: '语音识别失败，请重试', icon: 'none' })
-      }
-      
-      console.log('微信同声传译插件初始化成功')
-    } catch (e) {
-      this.speechManager = null
-    }
+    this.speechManager = null
     
     this.recorderManager.onStart(() => {
       this.setData({ isRecording: true, recordingDuration: 0 })
@@ -223,17 +191,6 @@ Page({
   },
   
   startRecording: function() {
-    if (this.speechManager) {
-      try {
-        this.speechManager.start({
-          lang: 'zh_CN'
-        })
-        return
-      } catch (e) {
-        console.error('Speech manager start error:', e)
-      }
-    }
-    
     this.recorderManager.start({
       duration: 60000,
       sampleRate: 16000,
@@ -246,12 +203,6 @@ Page({
   onTouchEnd: function(e) {
     if (this.data.inputMode !== 'voice') return
     if (this.data.isRecording) {
-      if (this.speechManager) {
-        try {
-          this.speechManager.stop()
-          return
-        } catch (e) {}
-      }
       this.recorderManager.stop()
     }
   },
@@ -259,12 +210,6 @@ Page({
   onTouchCancel: function() {
     if (this.data.inputMode !== 'voice') return
     if (this.data.isRecording) {
-      if (this.speechManager) {
-        try {
-          this.speechManager.stop()
-          return
-        } catch (e) {}
-      }
       this.recorderManager.stop()
     }
   },
