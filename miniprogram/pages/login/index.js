@@ -91,31 +91,30 @@ Page({
                 focusNickname: true
               })
             } else {
-              this.setData({
-                avatarUrl: '',
-                isChoosingAvatar: false
-              })
-              wx.showToast({ title: '头像获取失败', icon: 'none' })
+              this.handleAvatarUploadFail(tempAvatarUrl)
             }
           },
           fail: () => {
             wx.hideLoading()
-            this.setData({
-              avatarUrl: '',
-              isChoosingAvatar: false
-            })
-            wx.showToast({ title: '头像获取失败', icon: 'none' })
+            this.handleAvatarUploadFail(tempAvatarUrl)
           }
         })
       },
       fail: () => {
         wx.hideLoading()
-        wx.showToast({ title: '头像上传失败', icon: 'none' })
-        this.setData({
-          isChoosingAvatar: false
-        })
+        this.handleAvatarUploadFail(tempAvatarUrl)
       }
     })
+  },
+  
+  handleAvatarUploadFail: function(tempAvatarUrl) {
+    console.warn('[Login] Cloud upload failed, using local path')
+    this.setData({
+      avatarUrl: tempAvatarUrl,
+      isChoosingAvatar: false,
+      focusNickname: true
+    })
+    wx.showToast({ title: '头像已保存', icon: 'success' })
   },
 
   onAvatarError: function() {
@@ -164,38 +163,41 @@ Page({
             wx.hideLoading()
             if (urlRes.fileList && urlRes.fileList.length > 0 && urlRes.fileList[0].tempFileURL) {
               const avatarUrl = urlRes.fileList[0].tempFileURL
-              
-              wx.login({
-                success: (loginRes) => {
-                  if (loginRes.code) {
-                    const nickName = this.data.nickName.trim() || '小传用户'
-                    this.completeLogin(loginRes.code, avatarUrl, nickName, '', false)
-                  } else {
-                    this.setData({ isLoading: false })
-                    wx.showToast({ title: '登录失败', icon: 'none' })
-                  }
-                },
-                fail: () => {
-                  this.setData({ isLoading: false })
-                  wx.showToast({ title: '登录失败', icon: 'none' })
-                }
-              })
+              this.completeLoginWithAvatar(avatarUrl)
             } else {
-              this.setData({ isLoading: false })
-              wx.showToast({ title: '头像获取失败', icon: 'none' })
+              console.warn('[Login] Cloud getTempFileURL failed, using local path')
+              this.completeLoginWithAvatar(tempAvatarUrl)
             }
           },
           fail: () => {
             wx.hideLoading()
-            this.setData({ isLoading: false })
-            wx.showToast({ title: '头像获取失败', icon: 'none' })
+            console.warn('[Login] Cloud getTempFileURL failed, using local path')
+            this.completeLoginWithAvatar(tempAvatarUrl)
           }
         })
       },
       fail: () => {
         wx.hideLoading()
+        console.warn('[Login] Cloud upload failed, using local path')
+        this.completeLoginWithAvatar(tempAvatarUrl)
+      }
+    })
+  },
+  
+  completeLoginWithAvatar: function(avatarUrl) {
+    wx.login({
+      success: (loginRes) => {
+        if (loginRes.code) {
+          const nickName = this.data.nickName.trim() || '小传用户'
+          this.completeLogin(loginRes.code, avatarUrl, nickName, '', false)
+        } else {
+          this.setData({ isLoading: false })
+          wx.showToast({ title: '登录失败', icon: 'none' })
+        }
+      },
+      fail: () => {
         this.setData({ isLoading: false })
-        wx.showToast({ title: '头像上传失败', icon: 'none' })
+        wx.showToast({ title: '登录失败', icon: 'none' })
       }
     })
   },

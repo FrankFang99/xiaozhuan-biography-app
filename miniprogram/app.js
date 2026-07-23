@@ -2,9 +2,13 @@ const Tracker = require('./utils/tracker.js')
 
 App({
   onLaunch: function () {
-    wx.cloud.init({
-      env: 'trae-ai-creativity'
-    })
+    try {
+      wx.cloud.init({
+        env: 'trae-ai-creativity'
+      })
+    } catch (e) {
+      console.warn('[App] Cloud init failed:', e)
+    }
 
     // 隐私授权处理：当用户使用涉及隐私的接口时，弹出隐私协议弹窗
     if (wx.onNeedPrivacyAuthorization) {
