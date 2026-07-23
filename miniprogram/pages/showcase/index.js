@@ -206,9 +206,17 @@ Page({
   },
 
   startRecording: function() {
-    wx.navigateTo({
-      url: '/pages/onboarding/index'
-    })
+    const userInfo = wx.getStorageSync('userInfo')
+    if (userInfo && userInfo.nickName) {
+      const goal = wx.getStorageSync('goal')
+      if (goal) {
+        wx.switchTab({ url: '/pages/chat/index' })
+      } else {
+        wx.navigateTo({ url: '/pages/onboarding/index' })
+      }
+    } else {
+      wx.navigateTo({ url: '/pages/login/index' })
+    }
   },
 
   viewBiography: function() {

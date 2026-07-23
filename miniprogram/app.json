@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/login/index",
     "pages/showcase/index",
+    "pages/login/index",
     "pages/onboarding/index",
     "pages/chat/index",
     "pages/letterbox/index",
