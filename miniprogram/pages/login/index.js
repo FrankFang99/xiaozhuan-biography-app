@@ -132,17 +132,10 @@ Page({
     })
   },
 
-  openPrivacyContract: function() {
-    if (wx.openPrivacyContract) {
-      wx.openPrivacyContract({
-        success: function(res) {
-          console.log('[Login] Privacy contract opened:', res)
-        },
-        fail: function(err) {
-          console.error('[Login] Failed to open privacy contract:', err)
-        }
-      })
-    }
+  openPrivacyPage: function() {
+    wx.navigateTo({
+      url: '/pages/privacy/index'
+    })
   },
 
   onWechatLogin: function() {

@@ -7,8 +7,8 @@
     "pages/letterbox/index",
     "pages/my/index",
     "pages/biography/index",
-    "pages/test/index",
-    "pages/feedback/index"
+    "pages/feedback/index",
+    "pages/privacy/index"
   ],
   "window": {
     "backgroundTextStyle": "dark",

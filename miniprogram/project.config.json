@@ -7,10 +7,6 @@
         "value": "cloudfunctions"
       },
       {
-        "type": "directory",
-        "value": "components"
-      },
-      {
         "type": "file",
         "value": "data/testElders.js"
       },
@@ -25,6 +21,10 @@
       {
         "type": "file",
         "value": "sitemap.json"
+      },
+      {
+        "type": "directory",
+        "value": "pages/test"
       }
     ],
     "include": []

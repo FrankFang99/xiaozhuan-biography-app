@@ -1,0 +1,64 @@
+<view class="privacy-container">
+  <view class="privacy-header">
+    <text class="privacy-title">用户隐私保护指引</text>
+    <text class="privacy-subtitle">小传-你的AI传记助手</text>
+  </view>
+  
+  <scroll-view class="privacy-content" scroll-y>
+    <view class="section">
+      <text class="section-title">一、我们收集的信息</text>
+      <view class="section-content">
+        <text class="para">1. 微信头像和昵称：当您登录时，我们通过微信授权获取您的头像和昵称，用于展示您的个人资料。</text>
+        <text class="para">2. 语音录音：当您使用语音输入功能时，我们通过麦克风录制您的语音并转换为文字，用于与AI传记助手对话。语音数据仅在转换过程中使用，不会永久存储。</text>
+        <text class="para">3. 反馈内容：当您提交反馈时，我们收集您填写的反馈内容和可选的联系方式，用于处理您的意见建议。</text>
+        <text class="para">4. 聊天记录：我们将在本地存储您与AI的对话记录，用于生成您的个人传记。</text>
+      </view>
+    </view>
+    
+    <view class="section">
+      <text class="section-title">二、信息的使用</text>
+      <view class="section-content">
+        <text class="para">1. 您的头像和昵称仅用于在本应用内展示个人资料。</text>
+        <text class="para">2. 语音录音仅用于实时语音转文字，转换完成后即丢弃，不作其他用途。</text>
+        <text class="para">3. 反馈内容仅用于产品改进，联系方式仅用于必要时与您联系。</text>
+        <text class="para">4. 聊天记录存储在您的设备本地，用于传记生成，不会上传至服务器。</text>
+      </view>
+    </view>
+    
+    <view class="section">
+      <text class="section-title">三、信息的存储</text>
+      <view class="section-content">
+        <text class="para">1. 您的个人信息存储在微信平台提供的云开发服务中。</text>
+        <text class="para">2. 聊天记录和传记数据存储在您的设备本地。</text>
+        <text class="para">3. 我们不会将您的个人信息分享给第三方。</text>
+      </view>
+    </view>
+    
+    <view class="section">
+      <text class="section-title">四、您的权利</text>
+      <view class="section-content">
+        <text class="para">1. 您可以随时在"我的"页面清除本地存储的记忆数据。</text>
+        <text class="para">2. 您可以通过微信设置撤销授权。</text>
+        <text class="para">3. 您可以联系我们在合理期限内删除您的信息。</text>
+      </view>
+    </view>
+    
+    <view class="section">
+      <text class="section-title">五、联系我们</text>
+      <view class="section-content">
+        <text class="para">如有任何关于隐私保护的问题，请通过反馈功能联系我们。</text>
+      </view>
+    </view>
+    
+    <view class="section">
+      <text class="section-title">六、更新说明</text>
+      <view class="section-content">
+        <text class="para">本隐私政策可能会根据业务调整而更新，更新后我们会在小程序内提示您。</text>
+      </view>
+    </view>
+  </scroll-view>
+  
+  <view class="privacy-footer">
+    <text class="footer-text">© 2026 小传-你的AI传记助手</text>
+  </view>
+</view>
