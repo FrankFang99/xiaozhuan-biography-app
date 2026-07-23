@@ -6,6 +6,25 @@ App({
       env: 'trae-ai-creativity'
     })
 
+    // 隐私授权处理：当用户使用涉及隐私的接口时，弹出隐私协议弹窗
+    if (wx.onNeedPrivacyAuthorization) {
+      wx.onNeedPrivacyAuthorization(function(resolve, eventInfo) {
+        wx.showModal({
+          title: '隐私保护提示',
+          content: '为了保障您的权益，请先阅读并同意《用户隐私保护指引》',
+          confirmText: '同意',
+          cancelText: '拒绝',
+          success: function(res) {
+            if (res.confirm) {
+              resolve({ buttonId: 'agree', event: 'agree' })
+            } else {
+              resolve({ buttonId: 'disagree', event: 'disagree' })
+            }
+          }
+        })
+      })
+    }
+
     const userInfo = wx.getStorageSync('userInfo')
     if (userInfo) {
       this.globalData.userInfo = userInfo

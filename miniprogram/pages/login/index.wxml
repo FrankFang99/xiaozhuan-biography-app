@@ -44,9 +44,7 @@
       </view>
       <text class="agreement-text">
         我已阅读并同意
-        <text class="link">《用户协议》</text>
-        和
-        <text class="link">《隐私政策》</text>
+        <text class="link" bindtap="openPrivacyContract">《隐私政策》</text>
       </text>
     </view>
     
