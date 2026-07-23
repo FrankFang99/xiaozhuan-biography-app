@@ -617,10 +617,15 @@ wx.request = (options) => {
 | FEATURE-006 | feature | 实现传记评测体系 |
 | FEATURE-007 | feature | 实现埋点追踪系统 |
 | FEATURE-008 | feature | 实现用户反馈模块 |
+| FEATURE-009 | feature | 实现语音/文字输入模式切换（麦克风图标+"字"按钮） |
+| FEATURE-010 | feature | 实现统一图标风格（tabBar图标、我的页面菜单图标） |
 | BUGFIX-001 | bugfix | 修复WXML可选链语法错误 |
 | BUGFIX-002 | bugfix | 修复聊天记录丢失问题 |
 | BUGFIX-003 | bugfix | 修复传记显示问题 |
 | BUGFIX-004 | bugfix | 修复字体模糊问题 |
+| BUGFIX-005 | bugfix | 修复图片上传功能导致的性能问题（移除图片功能） |
+| BUGFIX-006 | bugfix | 修复小程序代码包体积超过2MB限制（压缩头像图片） |
+| BUGFIX-007 | bugfix | 修复generateNarrativeChapterWithPhotos未定义错误 |
 
 ---
 

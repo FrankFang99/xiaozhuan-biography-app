@@ -5,6 +5,26 @@
       {
         "type": "directory",
         "value": "cloudfunctions"
+      },
+      {
+        "type": "directory",
+        "value": "components"
+      },
+      {
+        "type": "file",
+        "value": "data/testElders.js"
+      },
+      {
+        "type": "file",
+        "value": "utils/biographyEvaluator.js"
+      },
+      {
+        "type": "file",
+        "value": "version.json"
+      },
+      {
+        "type": "file",
+        "value": "sitemap.json"
       }
     ],
     "include": []

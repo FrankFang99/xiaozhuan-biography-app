@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../stores/useAppStore';
-import { Target, Star, Circle, BookOpen, LogOut, MessageCircle, X, ArrowRight, Saturn } from 'lucide-react';
+import { Target, Star, Circle, BookOpen, LogOut, MessageCircle, X, ArrowRight, Globe } from 'lucide-react';
 
 export function MyPage() {
   const [showSettings, setShowSettings] = useState(false);
@@ -152,7 +152,7 @@ export function MyPage() {
             className="w-full flex items-center gap-4 py-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
           >
             <div className="w-10 h-10 bg-[#D4A853]/20 rounded-lg flex items-center justify-center">
-              <Saturn className="w-5 h-5 text-[#D4A853]" />
+              <Globe className="w-5 h-5 text-[#D4A853]" />
             </div>
             <span className="flex-1 text-white">传记宇宙</span>
             <ArrowRight className="w-5 h-5 text-white/30" />
