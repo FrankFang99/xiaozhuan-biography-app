@@ -1,0 +1,14 @@
+{
+  "name": "xiaozhuan-miniprogram-test",
+  "version": "1.0.0",
+  "description": "小传小程序自动化测试",
+  "scripts": {
+    "test": "node test/run-tests.js",
+    "test:showcase": "node test/showcase.test.js",
+    "test:login": "node test/login.test.js",
+    "test:chat": "node test/chat.test.js"
+  },
+  "dependencies": {
+    "miniprogram-automator": "^0.6.1"
+  }
+}
