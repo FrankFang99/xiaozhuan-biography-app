@@ -123,16 +123,31 @@ Page({
 
   onRegenerateOutline: function() {
     const { selectedStructure } = this.data
-    const config = STRUCTURE_CONFIG[selectedStructure] || STRUCTURE_CONFIG.timeline
-    const stages = config.stages.map((stage, index) => {
-      const shuffledQuestions = [...stage.questions].sort(() => Math.random() - 0.5)
-      return {
-        ...stage,
-        order: index + 1,
-        questions: shuffledQuestions
-      }
+    
+    const structures = Object.keys(STRUCTURE_CONFIG)
+    const currentIndex = structures.indexOf(selectedStructure)
+    const nextIndex = (currentIndex + 1) % structures.length
+    const newStructure = structures[nextIndex]
+    
+    const config = STRUCTURE_CONFIG[newStructure]
+    const stages = config.stages.map((stage, index) => ({
+      ...stage,
+      order: index + 1
+    }))
+    
+    this.setData({ 
+      selectedStructure: newStructure,
+      outlineStages: stages 
     })
-    this.setData({ outlineStages: stages })
-    wx.showToast({ title: '已重新生成大纲', icon: 'none' })
+    
+    const structureNames = {
+      timeline: '时间线模式',
+      milestone: '重大事件模式'
+    }
+    
+    wx.showToast({ 
+      title: `已切换为${structureNames[newStructure]}`, 
+      icon: 'none' 
+    })
   }
 })

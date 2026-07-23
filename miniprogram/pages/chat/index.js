@@ -47,62 +47,72 @@ Page({
   lastScrollTop: 0,
 
   onLoad: function() {
-    const goal = wx.getStorageSync('goal')
-    const notifications = wx.getStorageSync('notifications') || []
-    const messages = wx.getStorageSync('currentChatMessages') || []
-    
-    Tracker.init(wx.getStorageSync('userId'))
-    Tracker.pageView('chat')
-    const userMemory = wx.getStorageSync('userMemory') || this.getDefaultMemory()
-    const letters = wx.getStorageSync('letters') || []
-    const userInfo = wx.getStorageSync('userInfo') || {}
-    
-    const stages = this.getStages(goal)
-    const currentStage = stages.find(s => s.id === userMemory.progress.currentPhase) || stages[0]
-    
-    const targetLetterCount = goal ? parseInt(goal.letterCount || goal.targetLetterCount) || 5 : 5
+    try {
+      const goal = wx.getStorageSync('goal')
+      const notifications = wx.getStorageSync('notifications') || []
+      const messages = wx.getStorageSync('currentChatMessages') || []
+      
+      Tracker.init(wx.getStorageSync('userId'))
+      Tracker.pageView('chat')
+      const userMemory = wx.getStorageSync('userMemory') || this.getDefaultMemory()
+      const letters = wx.getStorageSync('letters') || []
+      const userInfo = wx.getStorageSync('userInfo') || {}
+      
+      const stages = this.getStages(goal)
+      const currentStage = stages.find(s => s.id === userMemory.progress.currentPhase) || stages[0]
+      
+      const targetLetterCount = goal ? parseInt(goal.letterCount || goal.targetLetterCount) || 5 : 5
       const progressPercent = Math.round((letters.length / targetLetterCount) * 100)
       const daysRemaining = this.calculateDaysRemaining(goal)
       
       const hasCompletedTutorial = wx.getStorageSync('hasCompletedTutorial') || false
       
       const conversationPhase = userMemory.progress.conversationPhase || 'trust_building'
-    const showVoiceTutorial = !userMemory.hasSeenVoiceTutorial && !hasCompletedTutorial
-    
-    this.setData({ 
-      goal, 
-      notifications: notifications.slice(0, 3),
-      hasNotification: notifications.length > 0,
-      messages,
-      currentLetterCount: letters.length,
-      targetLetterCount,
-      progressPercent,
-      daysRemaining,
-      userAvatar: userInfo.avatarUrl || '',
-      userNickName: userInfo.nickName || '',
-      currentStage: currentStage.id,
-      stageName: currentStage.name,
-      conversationPhase,
-      showVoiceTutorial,
-      showFloatHeader: false,
-      showTutorial: !hasCompletedTutorial,
-      hasCompletedTutorial
-    }, () => {
-      this.calculateScrollHeight()
+      const showVoiceTutorial = !userMemory.hasSeenVoiceTutorial && !hasCompletedTutorial
       
-      if (messages.length === 0) {
-        this.initConversation()
-      } else {
-        setTimeout(() => {
-          this.scrollToBottom()
-        }, 50)
-      }
-    })
-    
-    this.initRecorder()
-    this.getSuggestedQuestions()
-    
-    this.resetFloatHeaderTimer()
+      this.setData({ 
+        goal, 
+        notifications: notifications.slice(0, 3),
+        hasNotification: notifications.length > 0,
+        messages,
+        currentLetterCount: letters.length,
+        targetLetterCount,
+        progressPercent,
+        daysRemaining,
+        userAvatar: userInfo.avatarUrl || '',
+        userNickName: userInfo.nickName || '',
+        currentStage: currentStage.id,
+        stageName: currentStage.name,
+        conversationPhase,
+        showVoiceTutorial,
+        showFloatHeader: false,
+        showTutorial: !hasCompletedTutorial,
+        hasCompletedTutorial
+      }, () => {
+        try {
+          this.calculateScrollHeight()
+          
+          if (messages.length === 0) {
+            this.initConversation()
+          } else {
+            setTimeout(() => {
+              this.scrollToBottom()
+            }, 50)
+          }
+        } catch (e) {
+          console.error('[Chat] setData callback error:', e)
+          wx.showToast({ title: '加载失败', icon: 'none' })
+        }
+      })
+      
+      this.initRecorder()
+      this.getSuggestedQuestions()
+      
+      this.resetFloatHeaderTimer()
+    } catch (e) {
+      console.error('[Chat] onLoad error:', e)
+      wx.showToast({ title: '页面加载失败', icon: 'none' })
+    }
   },
   
   calculateScrollHeight: function() {
@@ -341,9 +351,14 @@ Page({
   },
 
   getStages: function(goal) {
-    const structureType = goal && goal.structure ? goal.structure : 'timeline'
-    const config = STRUCTURE_CONFIG[structureType] || STRUCTURE_CONFIG.timeline
-    return config.stages
+    try {
+      const structureType = goal && goal.structure ? goal.structure : 'timeline'
+      const config = STRUCTURE_CONFIG[structureType] || STRUCTURE_CONFIG.timeline
+      return config.stages || STRUCTURE_CONFIG.timeline.stages
+    } catch (e) {
+      console.error('[Chat] getStages error:', e)
+      return STRUCTURE_CONFIG.timeline.stages
+    }
   },
 
   getDefaultMemory: function() {
